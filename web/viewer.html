@@ -27,8 +27,8 @@ See https://github.com/adobe-type-tools/cmap-resources
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="google" content="notranslate">
   <title>PDF.js viewer</title>
-  <style>
-    /* 余計なUIを非表示にしてキャンバスだけにする */
+  <style id="slide-mode">
+    /* ツールバー/サイドバー等を隠す */
     .toolbar,
     .secondaryToolbar,
     .findbar,
@@ -36,17 +36,26 @@ See https://github.com/adobe-type-tools/cmap-resources
       display: none !important;
     }
 
-    /* ビュー領域をフルに使う */
+    /* 表示領域をフルに使い、スクロールを隠す */
     #viewerContainer {
       top: 0 !important;
       left: 0 !important;
-    }
-
-    /* スクロールバー非表示（“1枚だけ”見える） */
-    #viewerContainer {
+      height: 100vh !important;
       overflow: hidden !important;
     }
+
+    /* 全ページを非表示にし、"現在ページ" だけ出す */
+    #viewer .page {
+      display: none;
+      margin: 0 auto !important;
+      box-shadow: none !important;
+    }
+
+    #viewer .page.is-current {
+      display: block;
+    }
   </style>
+
 
   <!-- This snippet is used in production (included from viewer.html) -->
   <link rel="resource" type="application/l10n" href="locale/locale.json">
@@ -959,36 +968,50 @@ See https://github.com/adobe-type-tools/cmap-resources
   <div id="printContainer"></div>
 
   <script>
-    // 読み込み完了で1ページ全体表示に固定
-    document.addEventListener('pagesinit', () => {
-      const app = window.PDFViewerApplication;
-      if (!app) return;
-      // 1ページが画面に収まる倍率
-      app.pdfViewer.currentScaleValue = 'page-fit';
-    });
+    (function () {
+      function updateSinglePageView() {
+        const app = window.PDFViewerApplication;
+        if (!app || !app.pdfViewer) return;
 
-    // ←/→／PageUp/PageDown でページめくり（リンクは通常通り動作）
-    window.addEventListener('keydown', (e) => {
-      const app = window.PDFViewerApplication;
-      if (!app || !app.page) return;
+        // 1ページ全体表示
+        app.pdfViewer.currentScaleValue = 'page-fit';
 
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-        app.page = Math.min(app.page + 1, app.pagesCount);
-        e.preventDefault();
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        app.page = Math.max(app.page - 1, 1);
-        e.preventDefault();
+        // 現在ページ番号
+        const n = app.page;
+
+        // すべてのページを走査し、現在だけ表示
+        document.querySelectorAll('#viewer .page').forEach(p => {
+          p.classList.toggle('is-current', +p.dataset.pageNumber === n);
+        });
+
+        // スクロール位置をリセット（常に1枚だけ見える）
+        const c = document.getElementById('viewerContainer');
+        if (c) c.scrollTop = 0;
       }
-    });
 
-    // 画面の空白部クリックで次ページ（リンク上のクリックはそのままリンクとして動作）
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('a')) return; // リンクは妨げない
-      const app = window.PDFViewerApplication;
-      if (!app || !app.page) return;
-      app.page = Math.min(app.page + 1, app.pagesCount);
-    });
+      // 初期化後＆ページ切替時に反映
+      document.addEventListener('pagesinit', () => {
+        const eb = window.PDFViewerApplication.eventBus;
+        eb.on('pagesloaded', updateSinglePageView);
+        eb.on('pagechanging', updateSinglePageView); // ページ変更イベント
+        updateSinglePageView();
+      });
+
+      // ←/→ / PageUp / PageDown でページ送り
+      window.addEventListener('keydown', (e) => {
+        const app = window.PDFViewerApplication;
+        if (!app || !app.page) return;
+        if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+          app.pdfViewer.currentPageNumber = Math.min(app.page + 1, app.pagesCount);
+          e.preventDefault();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          app.pdfViewer.currentPageNumber = Math.max(app.page - 1, 1);
+          e.preventDefault();
+        }
+      });
+    })();
   </script>
+
 </body>
 
 </html>
