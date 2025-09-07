@@ -28,7 +28,7 @@ See https://github.com/adobe-type-tools/cmap-resources
   <meta name="google" content="notranslate">
   <title>PDF.js viewer</title>
   <style id="slide-mode">
-    /* ツールバー/サイドバー等を隠す */
+    /* 余計なUIを隠す */
     .toolbar,
     .secondaryToolbar,
     .findbar,
@@ -36,7 +36,7 @@ See https://github.com/adobe-type-tools/cmap-resources
       display: none !important;
     }
 
-    /* 表示領域をフルに使い、スクロールを隠す */
+    /* 表示領域をフルに使う＋スクロールを隠す */
     #viewerContainer {
       top: 0 !important;
       left: 0 !important;
@@ -44,14 +44,15 @@ See https://github.com/adobe-type-tools/cmap-resources
       overflow: hidden !important;
     }
 
-    /* 全ページを非表示にし、"現在ページ" だけ出す */
-    #viewer .page {
+    /* ← ここがポイント：準備できるまでページは隠さない */
+    /* 準備できたら body に .slide-mode を付け、そこでだけ1枚表示に切り替える */
+    body.slide-mode #viewer .page {
       display: none;
       margin: 0 auto !important;
       box-shadow: none !important;
     }
 
-    #viewer .page.is-current {
+    body.slide-mode #viewer .page.is-current {
       display: block;
     }
   </style>
@@ -966,38 +967,41 @@ See https://github.com/adobe-type-tools/cmap-resources
 
   </div> <!-- outerContainer -->
   <div id="printContainer"></div>
-
   <script>
     (function () {
       function updateSinglePageView() {
         const app = window.PDFViewerApplication;
         if (!app || !app.pdfViewer) return;
 
-        // 1ページ全体表示
+        // 1ページが画面に収まる倍率
         app.pdfViewer.currentScaleValue = 'page-fit';
 
-        // 現在ページ番号
+        // 現在ページだけ表示
         const n = app.page;
-
-        // すべてのページを走査し、現在だけ表示
         document.querySelectorAll('#viewer .page').forEach(p => {
           p.classList.toggle('is-current', +p.dataset.pageNumber === n);
         });
 
-        // スクロール位置をリセット（常に1枚だけ見える）
+        // スクロール位置リセット
         const c = document.getElementById('viewerContainer');
         if (c) c.scrollTop = 0;
       }
 
-      // 初期化後＆ページ切替時に反映
+      function bindEvents() {
+        const app = window.PDFViewerApplication;
+        const eb = app && app.eventBus;
+        if (!eb) return;
+        eb.on('pagesloaded', () => { document.body.classList.add('slide-mode'); updateSinglePageView(); });
+        eb.on('pagechanging', updateSinglePageView);
+      }
+
       document.addEventListener('pagesinit', () => {
-        const eb = window.PDFViewerApplication.eventBus;
-        eb.on('pagesloaded', updateSinglePageView);
-        eb.on('pagechanging', updateSinglePageView); // ページ変更イベント
-        updateSinglePageView();
+        const app = window.PDFViewerApplication;
+        if (app && app.pdfViewer) app.pdfViewer.currentScaleValue = 'page-fit';
+        bindEvents();
       });
 
-      // ←/→ / PageUp / PageDown でページ送り
+      // ←/→ / PageUp / PageDown でページ送り（リンクは通常通り動作）
       window.addEventListener('keydown', (e) => {
         const app = window.PDFViewerApplication;
         if (!app || !app.page) return;
@@ -1008,6 +1012,14 @@ See https://github.com/adobe-type-tools/cmap-resources
           app.pdfViewer.currentPageNumber = Math.max(app.page - 1, 1);
           e.preventDefault();
         }
+      });
+
+      // 画面の空白部クリックで次ページ（リンク上のクリックはそのまま）
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('a')) return;
+        const app = window.PDFViewerApplication;
+        if (!app || !app.page) return;
+        app.pdfViewer.currentPageNumber = Math.min(app.page + 1, app.pagesCount);
       });
     })();
   </script>
