@@ -1,159 +1,185 @@
-// web/slide-click.js（完成版）
+// web/slide-click.js（標準⇄拡張の切替。標準UI/背景を壊さない版）
 (() => {
-  /* ---- 起動前/後の基本設定：単一ページ＋page-fit ---- */
-  document.addEventListener('webviewerloaded', () => {
-    PDFViewerApplicationOptions.set('scrollModeOnLoad', 3);          // 3 = PAGE（1枚表示）
-    PDFViewerApplicationOptions.set('defaultZoomValue', 'page-fit'); // 1ページを画面に収める
-  });
-  document.addEventListener('pagesinit', () => {
-    const app = window.PDFViewerApplication;
-    if (app?.pdfViewer) {
-      const SM = (app.pdfViewer.constructor?.ScrollMode?.PAGE) ?? 3;
-      app.pdfViewer.scrollMode = SM;
-      app.pdfViewer.currentScaleValue = 'page-fit';
+  const STATE = { enabled: false };  // ← 初期はOFF（完全に標準のまま）
+  let fsBtn, modeBtn;
+
+  // PDF.js 参照
+  const app   = () => window.PDFViewerApplication;
+  const viewer= () => app()?.pdfViewer;
+
+  // 全画面（ブラウザFS）
+  const isFS   = () => !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+  const reqFS  = () => (document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen||document.documentElement.msRequestFullscreen).call(document.documentElement);
+  const exitFS = () => (document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen).call(document);
+  const toggleFS = () => isFS()? exitFS() : reqFS();
+
+  // 拡張ON：単一ページ + page-fit、クリック送り、外部リンク別タブ、FS中はcover
+  function enable(){
+    if (STATE.enabled) return;
+    STATE.enabled = true;
+
+    const v = viewer();
+    if (v){
+      const SM = (v.constructor?.ScrollMode?.PAGE) ?? 3; // PAGE
+      v.scrollMode = SM;
+      v.currentScaleValue = 'page-fit';
     }
-  });
 
-  /* ---- フルスクリーン（Fキー & 右上ボタン） ---- */
-  function isFS() {
-    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
-  }
-  function reqFS() {
-    const de = document.documentElement;
-    (de.requestFullscreen || de.webkitRequestFullscreen || de.msRequestFullscreen).call(de);
-  }
-  function exitFS() {
-    (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen).call(document);
-  }
-  function toggleFS() { isFS() ? exitFS() : reqFS(); }
+    document.addEventListener('pointerup', onPointerUp, true);
+    document.addEventListener('click',     onExternalLink, true);
+    document.addEventListener('fullscreenchange', onFSChange);
+    window.addEventListener('resize', onResize);
+    document.addEventListener('pagesinit', onPagesInit);
+    document.addEventListener('pagechanging', onPageChanging);
 
-  // F キーでトグル（キャプチャ段階で先取り）
+    updateModeBtn();
+  }
+
+  // 拡張OFF：**完全に標準へ戻す**（背景・ツールバー・挙動を壊さない）
+  function disable(){
+    if (!STATE.enabled) return;
+    STATE.enabled = false;
+
+    document.removeEventListener('pointerup', onPointerUp, true);
+    document.removeEventListener('click',     onExternalLink, true);
+    document.removeEventListener('fullscreenchange', onFSChange);
+    window.removeEventListener('resize', onResize);
+    document.removeEventListener('pagesinit', onPagesInit);
+    document.removeEventListener('pagechanging', onPageChanging);
+
+    const v = viewer();
+    if (v){
+      v.scrollMode = 0;        // Vertical (連続スクロール)
+      v.currentScaleValue = 'auto'; // 標準の自動倍率
+    }
+    const vc = document.getElementById('viewerContainer');
+    if (vc) vc.style.overflow = ''; // 変更を元に戻す
+
+    updateModeBtn();
+  }
+
+  // クリック送り（リンク・ツールバー上はスルー）
+  function onPointerUp(e){
+    if (!STATE.enabled) return;
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    if (e.target.closest('#toolbarContainer, #secondaryToolbar, #sidebarContainer, #slideUI')) return;
+    if (e.target.closest('a[href], .annotationLayer a[href], .linkAnnotation')) return;
+
+    const sel = window.getSelection();
+    if (sel && String(sel).length) return;
+
+    const a = app(), v = viewer();
+    if (!a || !v) return;
+    const right = e.clientX >= (document.documentElement.clientWidth/2);
+    const next  = Math.max(1, Math.min((a.page||1) + (right? 1 : -1), a.pagesCount || v.pagesCount || 1));
+    if (next !== a.page) v.currentPageNumber = next;
+    e.preventDefault();
+  }
+
+  // 外部リンクは必ず別タブ（内部リンク/#は標準のまま）
+  function onExternalLink(e){
+    if (!STATE.enabled) return;
+    const aEl = e.target.closest && e.target.closest('a[href], .annotationLayer a[href], .linkAnnotation');
+    if (!aEl) return;
+
+    const hrefAttr = aEl.getAttribute('href') || '';
+    const internal = aEl.classList?.contains('internalLink') || hrefAttr.startsWith('#');
+    const external = !internal && (/^https?:\/\//i.test(hrefAttr) || aEl.classList?.contains('externalLink') || (aEl.href && aEl.href.startsWith('http')));
+
+    if (external){
+      const url = aEl.href || hrefAttr;
+      window.open(url, '_blank', 'noopener');
+      e.preventDefault(); e.stopPropagation();
+    }
+  }
+
+  // FS中は“隙間ゼロ（cover）”、通常は page-fit（contain）
+  function basePageSize(){
+    const v = viewer(), a = app();
+    if (!v || !a) return null;
+    const pv = v.getPageView(Math.max(0, (a.page||1) - 1));
+    if (!pv || !pv.viewport || !pv.scale) return null;
+    return { w: pv.viewport.width / pv.scale, h: pv.viewport.height / pv.scale };
+  }
+  function applyCover(){
+    const v = viewer(); const vc = document.getElementById('viewerContainer'); const base = basePageSize();
+    if (!v || !vc || !base) return;
+    const { w, h } = base; const vw = vc.clientWidth, vh = vc.clientHeight;
+    v.currentScale = Math.max(vw / w, vh / h); // cover（余白ゼロ）
+    vc.style.overflow = 'hidden';
+  }
+  function applyContain(){
+    const v = viewer(); const vc = document.getElementById('viewerContainer');
+    if (v) v.currentScaleValue = 'page-fit'; // contain（余白あり）
+    if (vc) vc.style.overflow = '';
+  }
+  function onFSChange(){ if (!STATE.enabled) return; isFS() ? applyCover() : applyContain(); }
+  function onResize(){ if (STATE.enabled && isFS()) applyCover(); }
+  function onPagesInit(){ if (!STATE.enabled) return; const v = viewer(); if (v) v.currentScaleValue = 'page-fit'; if (isFS()) applyCover(); }
+  function onPageChanging(){ if (STATE.enabled && isFS()) applyCover(); }
+
+  // 右下のUI（拡張トグル/全画面）
+  function ensureUI(){
+    if (document.getElementById('slideUI')) return;
+    const ui = document.createElement('div');
+    ui.id = 'slideUI';
+    Object.assign(ui.style, { position:'fixed', right:'10px', bottom:'10px', zIndex:'2147483647', display:'flex', gap:'8px' });
+
+    modeBtn = document.createElement('button');
+    fsBtn   = document.createElement('button');
+    [modeBtn, fsBtn].forEach(btn => Object.assign(btn.style, {
+      padding:'6px 10px', border:'1px solid #888', borderRadius:'6px',
+      background:'#fff', cursor:'pointer', font:'12px sans-serif'
+    }));
+
+    modeBtn.onclick = (e) => { e.stopPropagation(); (STATE.enabled ? disable : enable)(); };
+    fsBtn.onclick   = (e) => { e.stopPropagation(); toggleFS(); };
+
+    ui.appendChild(modeBtn);
+    ui.appendChild(fsBtn);
+    document.body.appendChild(ui);
+
+    updateModeBtn(); updateFsBtn();
+    document.addEventListener('fullscreenchange', updateFsBtn);
+    document.addEventListener('webkitfullscreenchange', updateFsBtn);
+    document.addEventListener('msfullscreenchange', updateFsBtn);
+  }
+  function updateModeBtn(){ if (modeBtn) modeBtn.textContent = STATE.enabled ? 'スライド機能：ON' : 'スライド機能：OFF'; }
+  function updateFsBtn(){   if (fsBtn)   fsBtn.textContent   = isFS() ? '全画面終了' : '全画面'; }
+
+  // Fキーで全画面（標準UIは壊さない）
   window.addEventListener('keydown', (e) => {
     if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'f' || e.key === 'F')) {
-      toggleFS();
-      e.preventDefault();
+      toggleFS(); e.preventDefault();
     }
   }, true);
 
-  // 右上ボタン（白い四角）
-  document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('fsToggle')) return;
-    const btn = document.createElement('button');
-    btn.id = 'fsToggle';
-    btn.textContent = '全画面';
-    Object.assign(btn.style, {
-      position: 'fixed', top: '10px', right: '10px', zIndex: '2147483647',
-      padding: '6px 10px', border: '1px solid #888', borderRadius: '6px',
-      background: '#fff', cursor: 'pointer', font: '12px sans-serif'
-    });
-    btn.addEventListener('click', (e) => { e.stopPropagation(); toggleFS(); });
-    document.body.appendChild(btn);
-
-    const update = () => { btn.textContent = isFS() ? '全画面終了' : '全画面'; };
-    document.addEventListener('fullscreenchange', update);
-    document.addEventListener('webkitfullscreenchange', update);
-    document.addEventListener('msfullscreenchange', update);
-    update();
-  });
-
-  /* ---- クリックでページ送り（ホバーやリンクはそのまま） ---- */
-  function insideLink(el) {
-    return el?.closest?.('a[href], .annotationLayer a[href], .linkAnnotation');
-  }
-  function goto(delta) {
-    const app = window.PDFViewerApplication;
-    if (!app?.pdfViewer) return;
-    const p = app.page, max = app.pagesCount || app.pdfViewer.pagesCount || 1;
-    const n = Math.max(1, Math.min(p + delta, max));
-    if (n !== p) app.pdfViewer.currentPageNumber = n;
-  }
-
-  // 画面全体の pointerup をキャプチャで先取り（リンク・ボタン上はスルー）
-  document.addEventListener('pointerup', (e) => {
-    if (e.target.closest('#fsToggle')) return; // 全画面ボタン上
-    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; // 左クリックのみ
-    if (insideLink(e.target)) return; // リンクは既定動作を優先（ホバーも生きる）
-    const sel = window.getSelection();
-    if (sel && String(sel).length) return; // テキスト選択中は送らない
-
-    const right = e.clientX >= (document.documentElement.clientWidth / 2);
-    goto(right ? +1 : -1);
-    e.preventDefault();
-  }, true);
-
-  /* ---- 外部リンクは必ず“別タブ”で開く（内部リンクはそのまま） ---- */
-  document.addEventListener('click', (e) => {
-    const a = e.target.closest && e.target.closest('a[href], .annotationLayer a[href], .linkAnnotation');
-    if (!a) return;
-
-    const hrefAttr = a.getAttribute('href') || '';
-    const isInternal = a.classList?.contains('internalLink') || hrefAttr.startsWith('#');
-    const isExternal = !isInternal && (
-      /^https?:\/\//i.test(hrefAttr) ||
-      a.classList?.contains('externalLink') ||
-      (a.href && a.href.startsWith('http'))
-    );
-
-    if (isExternal) {
-      const url = a.href || hrefAttr;
-      window.open(url, '_blank', 'noopener');
-      e.preventDefault();   // 現タブ遷移を止める
-      e.stopPropagation();  // 後段の処理に渡さない
-    }
-  }, true);
-})();
-
-// --- フルスクリーン時は余白ゼロ（cover）、通常時はpage-fit（contain） ---
+  document.addEventListener('DOMContentLoaded', ensureUI);
+})();// --- 右下ボタンの見た目とラベルを強制（白地に白文字対策） ---
 (() => {
-  // フルスクリーン用の見た目最適化（ツールバー等を隠し、表示領域をフル化）
-  const st = document.createElement('style');
-  st.id = 'slideCoverSkin';
-  st.textContent = `
-    body.fs #sidebarContainer, body.fs .toolbar, body.fs .secondaryToolbar { display: none !important; }
-    body.fs #viewerContainer { top:0 !important; left:0 !important; width:100vw !important; height:100vh !important; overflow:hidden !important; background:#000 !important; }
-    body.fs #viewer .page { margin:0 auto !important; box-shadow:none !important; }
-  `;
-  document.head.appendChild(st);
-
-  function isFS() {
-    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+  function restyleButtons() {
+    const btns = Array.from(document.querySelectorAll(
+      // これまでの複数版に対応
+      '#fsToggle, #slideUI button, #slideUI #fsToggle, #slideUI #modeToggle'
+    ));
+    btns.forEach(b => {
+      b.style.background = '#fff';
+      b.style.color = '#111'; // ← 文字色を黒に固定
+      b.style.border = '1px solid #888';
+      b.style.borderRadius = '6px';
+      b.style.padding = '6px 10px';
+      b.style.font = '14px/1.2 -apple-system,system-ui,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic UI",sans-serif';
+      b.style.cursor = 'pointer';
+      // ラベルが空なら入れる
+      if (!b.textContent.trim()) {
+        if (b.id === 'fsToggle') b.textContent = '全画面';
+        else b.textContent = 'スライド機能：ON';
+      }
+    });
   }
-
-  function coverScale() {
-    const app = window.PDFViewerApplication;
-    const vc = document.getElementById('viewerContainer');
-    if (!app?.pdfViewer || !vc) return;
-
-    // 現在ページの「素のサイズ」（scale=1相当）を取得
-    const pv = app.pdfViewer.getPageView(Math.max(0, app.page - 1));
-    if (!pv || !pv.viewport || !pv.scale) return;
-    const baseW = pv.viewport.width / pv.scale;
-    const baseH = pv.viewport.height / pv.scale;
-
-    const vw = vc.clientWidth, vh = vc.clientHeight;
-    const scale = Math.max(vw / baseW, vh / baseH); // ← cover（余白ゼロ）
-    app.pdfViewer.currentScale = scale;
-  }
-
-  function containScale() {
-    const app = window.PDFViewerApplication;
-    if (app?.pdfViewer) app.pdfViewer.currentScaleValue = 'page-fit'; // ← contain（余白あり）
-  }
-
-  function applyFSMode() {
-    const fs = isFS();
-    document.body.classList.toggle('fs', fs);
-    fs ? coverScale() : containScale();
-  }
-
-  // フルスクリーンの出入り／リサイズ／ページ切替でリスケール
-  document.addEventListener('fullscreenchange', applyFSMode);
-  document.addEventListener('webkitfullscreenchange', applyFSMode);
-  document.addEventListener('msfullscreenchange', applyFSMode);
-  window.addEventListener('resize', () => { if (isFS()) coverScale(); });
-
-  // 初期化後やページ切替でも、FS中なら再計算
-  document.addEventListener('pagesinit', () => { if (isFS()) setTimeout(coverScale, 0); });
-  document.addEventListener('pagechanging', () => { if (isFS()) setTimeout(coverScale, 0); });
+  document.addEventListener('DOMContentLoaded', restyleButtons);
+  document.addEventListener('pagesloaded', restyleButtons);
+  // UIが後から生成されるケースに備えて、短時間だけ再適用
+  let t = 0;
+  const id = setInterval(() => { restyleButtons(); if (++t > 40) clearInterval(id); }, 100);
 })();
-
