@@ -1,10 +1,6 @@
-// web/slide-click.js
+// web/slide-click.js（完成版）
 (() => {
-  /* ---- 以前の全面オーバーレイが残っていたら撤去 ---- */
-  const old = document.getElementById('slideClickLayer');
-  if (old) old.remove();
-
-  /* ---- 起動前/後の基本設定：単一ページ + page-fit ---- */
+  /* ---- 起動前/後の基本設定：単一ページ＋page-fit ---- */
   document.addEventListener('webviewerloaded', () => {
     PDFViewerApplicationOptions.set('scrollModeOnLoad', 3);          // 3 = PAGE（1枚表示）
     PDFViewerApplicationOptions.set('defaultZoomValue', 'page-fit'); // 1ページを画面に収める
@@ -39,7 +35,7 @@
     }
   }, true);
 
-  // 右上ボタン（白い四角）を復活
+  // 右上ボタン（白い四角）
   document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('fsToggle')) return;
     const btn = document.createElement('button');
@@ -60,7 +56,7 @@
     update();
   });
 
-  /* ---- クリックでページ送り（オーバーレイ不要／ホバー維持） ---- */
+  /* ---- クリックでページ送り（ホバーやリンクはそのまま） ---- */
   function insideLink(el){
     return el?.closest?.('a[href], .annotationLayer a[href], .linkAnnotation');
   }
@@ -72,24 +68,37 @@
     if (n !== p) app.pdfViewer.currentPageNumber = n;
   }
 
-  // 画面全体の pointerup をキャプチャで先取り（※リンクは通す／ホバーもそのまま）
+  // 画面全体の pointerup をキャプチャで先取り（リンク・ボタン上はスルー）
   document.addEventListener('pointerup', (e) => {
-    // 全画面ボタン上は無視
-    if (e.target.closest('#fsToggle')) return;
-
-    // 左クリックのみ・修飾キーなし
-    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-
-    // リンクの上 → 何もしない（デフォルト動作＆ホバー維持）
-    if (insideLink(e.target)) return;
-
-    // テキスト選択中は送らない
+    if (e.target.closest('#fsToggle')) return; // 全画面ボタン上
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; // 左クリックのみ
+    if (insideLink(e.target)) return; // リンクは既定動作を優先（ホバーも生きる）
     const sel = window.getSelection();
-    if (sel && String(sel).length) return;
+    if (sel && String(sel).length) return; // テキスト選択中は送らない
 
-    // 左半分＝前／右半分＝次
     const right = e.clientX >= (document.documentElement.clientWidth / 2);
     goto(right ? +1 : -1);
     e.preventDefault();
+  }, true);
+
+  /* ---- 外部リンクは必ず“別タブ”で開く（内部リンクはそのまま） ---- */
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[href], .annotationLayer a[href], .linkAnnotation');
+    if (!a) return;
+
+    const hrefAttr = a.getAttribute('href') || '';
+    const isInternal = a.classList?.contains('internalLink') || hrefAttr.startsWith('#');
+    const isExternal = !isInternal && (
+      /^https?:\/\//i.test(hrefAttr) ||
+      a.classList?.contains('externalLink') ||
+      (a.href && a.href.startsWith('http'))
+    );
+
+    if (isExternal) {
+      const url = a.href || hrefAttr;
+      window.open(url, '_blank', 'noopener');
+      e.preventDefault();   // 現タブ遷移を止める
+      e.stopPropagation();  // 後段の処理に渡さない
+    }
   }, true);
 })();
