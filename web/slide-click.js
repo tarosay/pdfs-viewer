@@ -172,5 +172,15 @@
     if (!e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'f' || e.key === 'F')) { toggleFS(); e.preventDefault(); }
   }, true);
 
+  function setInitialScrollMode() {
+    if (STATE.enabled) return;
+    const v = viewer();
+    if (v) {
+      v.scrollMode = 0; // Vertical
+      v.currentScaleValue = 'auto';
+    }
+  }
+
+  document.addEventListener('pagesinit', setInitialScrollMode, { once: true });
   document.addEventListener('DOMContentLoaded', ensureUI);
 })();
