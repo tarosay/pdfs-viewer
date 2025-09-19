@@ -25,3 +25,11 @@ PDFファイルを表示するには、`file`クエリパラメータでファ�
 `https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=あなたのファイル.pdf`
 
 ルートURL（`https://tarosay.github.io/pdfs-viewer/`）にアクセスすると、デフォルトのPDFファイルにリダイレクトされます。
+
+###AIでテーマソング
+
+https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=AIでテーマソング.pdf
+
+###ラズパイとiPhoneのhttps接続
+
+https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=ラズパイとiPhoneのhttps接続.pdf
