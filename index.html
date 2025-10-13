@@ -78,8 +78,6 @@
 
   <script>
     const DEFAULT_PDF = './AIでテーマソング.pdf';
-    const VIEWER_PAGE_PATH = './web/viewer.html';
-
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
@@ -94,19 +92,16 @@
     let currentObjectUrl = null;
 
     function buildViewerUrl(fileUrl) {
-      return `${VIEWER_PAGE_PATH}?file=${encodeURIComponent(fileUrl)}`;
+      return `./web/viewer.html?file=${encodeURIComponent(fileUrl)}`;
     }
 
-    function updateViewerSource(fileUrl) {
+    function setViewerSource(fileUrl, message = STATUS_MESSAGES.default) {
       viewerFrame.src = buildViewerUrl(fileUrl);
-    }
-
-    function updateStatus(message = STATUS_MESSAGES.default) {
       status.textContent = message;
     }
 
-    function toggleHeaderVisibility(shouldHide) {
-      header.classList.toggle('is-hidden', shouldHide);
+    function setHeaderHidden(hidden) {
+      header.classList.toggle('is-hidden', hidden);
     }
 
     function clearFileSelection() {
@@ -123,22 +118,23 @@
     function showDefaultPdf() {
       revokeCurrentObjectUrl();
       clearFileSelection();
-      updateViewerSource(DEFAULT_PDF);
-      updateStatus();
-      toggleHeaderVisibility(false);
+      setViewerSource(DEFAULT_PDF);
+      setHeaderHidden(false);
     }
 
     function displayUploadedPdf(file) {
       revokeCurrentObjectUrl();
       currentObjectUrl = URL.createObjectURL(file);
-      updateViewerSource(currentObjectUrl);
-      updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
-      toggleHeaderVisibility(true);
+      setViewerSource(
+        currentObjectUrl,
+        `${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`
+      );
+      setHeaderHidden(true);
     }
 
     function showInvalidFileMessage() {
-      updateStatus(STATUS_MESSAGES.invalid);
-      toggleHeaderVisibility(false);
+      status.textContent = STATUS_MESSAGES.invalid;
+      setHeaderHidden(false);
       clearFileSelection();
     }
 
