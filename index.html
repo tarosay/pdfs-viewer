@@ -109,6 +109,13 @@
       fileInput.value = '';
     }
 
+    function resetObjectUrl() {
+      if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = null;
+      }
+    }
+
     function showDefaultPdf() {
       resetObjectUrl();
       clearFileInput();
@@ -129,13 +136,6 @@
       updateStatus(STATUS_MESSAGES.invalidFile);
       header.classList.remove('is-hidden');
       clearFileInput();
-    }
-
-    function resetObjectUrl() {
-      if (currentObjectUrl) {
-        URL.revokeObjectURL(currentObjectUrl);
-        currentObjectUrl = null;
-      }
     }
 
     function isPdfFile(file) {
