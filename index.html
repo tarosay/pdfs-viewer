@@ -97,16 +97,16 @@
       return `${VIEWER_PAGE_PATH}?file=${encodeURIComponent(fileUrl)}`;
     }
 
-    function setViewerSource(fileUrl) {
+    function updateViewerSource(fileUrl) {
       viewerFrame.src = buildViewerUrl(fileUrl);
     }
 
-    function setStatus(message = STATUS_MESSAGES.default) {
+    function updateStatus(message = STATUS_MESSAGES.default) {
       status.textContent = message;
     }
 
-    function setHeaderHidden(hidden) {
-      header.classList.toggle('is-hidden', hidden);
+    function toggleHeaderVisibility(shouldHide) {
+      header.classList.toggle('is-hidden', shouldHide);
     }
 
     function clearFileSelection() {
@@ -123,22 +123,22 @@
     function showDefaultPdf() {
       revokeCurrentObjectUrl();
       clearFileSelection();
-      setViewerSource(DEFAULT_PDF);
-      setStatus();
-      setHeaderHidden(false);
+      updateViewerSource(DEFAULT_PDF);
+      updateStatus();
+      toggleHeaderVisibility(false);
     }
 
     function displayUploadedPdf(file) {
       revokeCurrentObjectUrl();
       currentObjectUrl = URL.createObjectURL(file);
-      setViewerSource(currentObjectUrl);
-      setStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
-      setHeaderHidden(true);
+      updateViewerSource(currentObjectUrl);
+      updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
+      toggleHeaderVisibility(true);
     }
 
     function showInvalidFileMessage() {
-      setStatus(STATUS_MESSAGES.invalid);
-      setHeaderHidden(false);
+      updateStatus(STATUS_MESSAGES.invalid);
+      toggleHeaderVisibility(false);
       clearFileSelection();
     }
 
@@ -155,7 +155,7 @@
     }
 
     function handleFileChange(event) {
-      const [file] = event.target.files;
+      const [file] = event.target.files || [];
       if (!file) {
         return;
       }
