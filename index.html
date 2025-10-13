@@ -100,8 +100,13 @@
       status.textContent = text;
     }
 
+    function clearFileInput() {
+      fileInput.value = '';
+    }
+
     function showDefaultPdf() {
       resetObjectUrl();
+      clearFileInput();
       setViewerSource(DEFAULT_PDF);
       updateStatus(STATUS_MESSAGES.default);
       header.classList.remove('is-hidden');
@@ -143,7 +148,7 @@
       if (!isPdfFile(file)) {
         updateStatus(STATUS_MESSAGES.invalidFile);
         header.classList.remove('is-hidden');
-        fileInput.value = '';
+        clearFileInput();
         return;
       }
 
