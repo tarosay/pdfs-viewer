@@ -154,8 +154,8 @@
       return file.name?.toLowerCase().endsWith('.pdf');
     }
 
-    function handleFileChange() {
-      const [file] = fileInput.files;
+    function handleFileChange(event) {
+      const [file] = event.target.files;
       if (!file) {
         return;
       }
