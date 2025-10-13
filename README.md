@@ -4,9 +4,9 @@ This is a web-based PDF viewer. It now provides a simple landing page that loads
 
 ## Usage
 
-1. Access the root URL: `https://tarosay.github.io/pdfs-viewer/`.
+1. Access the root URL: [https://tarosay.github.io/pdfs-viewer/](https://tarosay.github.io/pdfs-viewer/).
 2. A sample PDF is displayed automatically.
-3. To view your own file, use the **PDFファイルをアップロードして表示** upload control and choose a PDF from your device. The viewer switches to the uploaded file immediately.
+3. To view your own file, use the **Upload and display a PDF file** control and choose a PDF from your device. The viewer switches to the uploaded file immediately.
 
 You can still open a PDF directly with the viewer by linking to `https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=YOUR_FILE.pdf` if you prefer query-parameter based access.
 
