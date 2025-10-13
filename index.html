@@ -1,15 +1,118 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>Redirecting...</title>
-  <meta http-equiv="refresh" content="0; url=./web/viewer.html?file=AI%E3%81%A7%E3%83%86%E3%83%BC%E3%83%9E%E3%82%BD%E3%83%B3%E3%82%B0.pdf">
-  <link rel="canonical" href="./web/viewer.html?file=AI%E3%81%A7%E3%83%86%E3%83%BC%E3%83%9E%E3%82%BD%E3%83%B3%E3%82%B0.pdf">
+  <title>PDF Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #f5f5f5;
+    }
+
+    header {
+      background: #1a73e8;
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    header.is-hidden {
+      display: none;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    #uploadControls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #fileInput {
+      color: white;
+    }
+
+    #status {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+
+    #viewerFrame {
+      width: 100%;
+      border: none;
+      flex: 1;
+      min-height: 0;
+    }
+  </style>
 </head>
 <body>
-  <p>If you are not redirected automatically, follow this <a href="./web/viewer.html?file=AI%E3%81%A7%E3%83%86%E3%83%BC%E3%83%9E%E3%82%BD%E3%83%B3%E3%82%B0.pdf">link to the PDF viewer</a>.</p>
+  <header>
+    <h1>PDF表示</h1>
+    <div id="uploadControls">
+      <label for="fileInput">PDFファイルをアップロードして表示:</label>
+      <input id="fileInput" type="file" accept="application/pdf">
+    </div>
+    <div id="status">サンプルPDFを表示しています。</div>
+  </header>
+  <main>
+    <iframe id="viewerFrame" title="PDF viewer"></iframe>
+  </main>
+
   <script>
-    window.location.replace('./web/viewer.html?file=AI%E3%81%A7%E3%83%86%E3%83%BC%E3%83%9E%E3%82%BD%E3%83%B3%E3%82%B0.pdf');
+    const DEFAULT_PDF = './AIでテーマソング.pdf';
+    const viewerFrame = document.getElementById('viewerFrame');
+    const fileInput = document.getElementById('fileInput');
+    const status = document.getElementById('status');
+    const header = document.querySelector('header');
+
+    let currentObjectUrl = null;
+
+    function setViewerSource(url, description) {
+      const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}`;
+      viewerFrame.src = viewerUrl;
+      status.textContent = description;
+    }
+
+    function resetObjectUrl() {
+      if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = null;
+      }
+    }
+
+    fileInput.addEventListener('change', () => {
+      const [file] = fileInput.files;
+      if (!file) {
+        return;
+      }
+
+      resetObjectUrl();
+      currentObjectUrl = URL.createObjectURL(file);
+      setViewerSource(currentObjectUrl, `${file.name} を表示しています。`);
+      header.classList.add('is-hidden');
+    });
+
+    window.addEventListener('beforeunload', resetObjectUrl);
+
+    setViewerSource(DEFAULT_PDF, 'サンプルPDFを表示しています。');
   </script>
 </body>
 </html>
