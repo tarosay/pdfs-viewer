@@ -98,9 +98,27 @@
       }
     }
 
+    function isPdfFile(file) {
+      if (!file) {
+        return false;
+      }
+
+      if (file.type === 'application/pdf') {
+        return true;
+      }
+
+      return file.name?.toLowerCase().endsWith('.pdf');
+    }
+
     fileInput.addEventListener('change', () => {
       const [file] = fileInput.files;
       if (!file) {
+        return;
+      }
+
+      if (!isPdfFile(file)) {
+        status.textContent = 'PDFファイルを選択してください。';
+        fileInput.value = '';
         return;
       }
 
