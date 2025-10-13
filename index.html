@@ -78,6 +78,8 @@
 
   <script>
     const DEFAULT_PDF = './AIでテーマソング.pdf';
+    const PDF_VIEWER_BASE = './web/viewer.html';
+
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
@@ -91,13 +93,16 @@
 
     let currentObjectUrl = null;
 
-    function setViewerSource(url) {
-      const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}`;
-      viewerFrame.src = viewerUrl;
+    function buildViewerUrl(fileUrl) {
+      return `${PDF_VIEWER_BASE}?file=${encodeURIComponent(fileUrl)}`;
     }
 
-    function updateStatus(text) {
-      status.textContent = text;
+    function setViewerSource(fileUrl) {
+      viewerFrame.src = buildViewerUrl(fileUrl);
+    }
+
+    function updateStatus(message = STATUS_MESSAGES.default) {
+      status.textContent = message;
     }
 
     function clearFileInput() {
@@ -108,7 +113,7 @@
       resetObjectUrl();
       clearFileInput();
       setViewerSource(DEFAULT_PDF);
-      updateStatus(STATUS_MESSAGES.default);
+      updateStatus();
       header.classList.remove('is-hidden');
     }
 
@@ -118,6 +123,12 @@
       setViewerSource(currentObjectUrl);
       updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
       header.classList.add('is-hidden');
+    }
+
+    function handleInvalidFile() {
+      updateStatus(STATUS_MESSAGES.invalidFile);
+      header.classList.remove('is-hidden');
+      clearFileInput();
     }
 
     function resetObjectUrl() {
@@ -139,23 +150,23 @@
       return file.name?.toLowerCase().endsWith('.pdf');
     }
 
-    fileInput.addEventListener('change', () => {
+    function handleFileSelection() {
       const [file] = fileInput.files;
       if (!file) {
         return;
       }
 
       if (!isPdfFile(file)) {
-        updateStatus(STATUS_MESSAGES.invalidFile);
-        header.classList.remove('is-hidden');
-        clearFileInput();
+        handleInvalidFile();
         return;
       }
 
       displayUploadedPdf(file);
-    });
+    }
 
+    fileInput.addEventListener('change', handleFileSelection);
     window.addEventListener('beforeunload', resetObjectUrl);
+    window.addEventListener('pagehide', resetObjectUrl);
 
     showDefaultPdf();
   </script>
