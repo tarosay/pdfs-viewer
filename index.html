@@ -45,6 +45,10 @@
       opacity: 0.9;
     }
 
+    .is-hidden {
+      display: none !important;
+    }
+
     main {
       flex: 1;
       display: flex;
@@ -77,6 +81,7 @@
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
+    const header = document.querySelector('header');
 
     let currentObjectUrl = null;
 
@@ -102,6 +107,7 @@
       resetObjectUrl();
       currentObjectUrl = URL.createObjectURL(file);
       setViewerSource(currentObjectUrl, `${file.name} を表示しています。`);
+      header.classList.add('is-hidden');
     });
 
     window.addEventListener('beforeunload', resetObjectUrl);
