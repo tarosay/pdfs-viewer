@@ -70,7 +70,7 @@
       <label for="fileInput">PDFファイルをアップロードして表示:</label>
       <input id="fileInput" type="file" accept="application/pdf">
     </div>
-    <div id="status">サンプルPDFを表示しています。</div>
+    <div id="status" role="status" aria-live="polite">サンプルPDFを表示しています。</div>
   </header>
   <main>
     <iframe id="viewerFrame" title="PDF viewer"></iframe>
@@ -105,6 +105,10 @@
       status.textContent = message;
     }
 
+    function setHeaderVisibility(isHidden) {
+      header.classList.toggle('is-hidden', isHidden);
+    }
+
     function clearFileInput() {
       fileInput.value = '';
     }
@@ -121,7 +125,7 @@
       clearFileInput();
       setViewerSource(DEFAULT_PDF);
       updateStatus();
-      header.classList.remove('is-hidden');
+      setHeaderVisibility(false);
     }
 
     function displayUploadedPdf(file) {
@@ -129,12 +133,12 @@
       currentObjectUrl = URL.createObjectURL(file);
       setViewerSource(currentObjectUrl);
       updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
-      header.classList.add('is-hidden');
+      setHeaderVisibility(true);
     }
 
     function handleInvalidFile() {
       updateStatus(STATUS_MESSAGES.invalidFile);
-      header.classList.remove('is-hidden');
+      setHeaderVisibility(false);
       clearFileInput();
     }
 
