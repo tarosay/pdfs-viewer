@@ -78,7 +78,7 @@
 
   <script>
     const DEFAULT_PDF = './AIでテーマソング.pdf';
-    const PDF_VIEWER_PATH = './web/viewer.html';
+    const VIEWER_PAGE_PATH = './web/viewer.html';
 
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
@@ -94,22 +94,22 @@
     let currentObjectUrl = null;
 
     function buildViewerUrl(fileUrl) {
-      return `${PDF_VIEWER_PATH}?file=${encodeURIComponent(fileUrl)}`;
+      return `${VIEWER_PAGE_PATH}?file=${encodeURIComponent(fileUrl)}`;
     }
 
-    function updateViewerSource(fileUrl) {
+    function setViewerSource(fileUrl) {
       viewerFrame.src = buildViewerUrl(fileUrl);
     }
 
-    function updateStatus(message = STATUS_MESSAGES.default) {
+    function setStatus(message = STATUS_MESSAGES.default) {
       status.textContent = message;
     }
 
-    function setHeaderHidden(isHidden) {
-      header.classList.toggle('is-hidden', isHidden);
+    function setHeaderHidden(hidden) {
+      header.classList.toggle('is-hidden', hidden);
     }
 
-    function clearSelectedFile() {
+    function clearFileSelection() {
       fileInput.value = '';
     }
 
@@ -122,24 +122,24 @@
 
     function showDefaultPdf() {
       revokeCurrentObjectUrl();
-      clearSelectedFile();
-      updateViewerSource(DEFAULT_PDF);
-      updateStatus();
+      clearFileSelection();
+      setViewerSource(DEFAULT_PDF);
+      setStatus();
       setHeaderHidden(false);
     }
 
     function displayUploadedPdf(file) {
       revokeCurrentObjectUrl();
       currentObjectUrl = URL.createObjectURL(file);
-      updateViewerSource(currentObjectUrl);
-      updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
+      setViewerSource(currentObjectUrl);
+      setStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
       setHeaderHidden(true);
     }
 
-    function handleInvalidSelection() {
-      updateStatus(STATUS_MESSAGES.invalid);
+    function showInvalidFileMessage() {
+      setStatus(STATUS_MESSAGES.invalid);
       setHeaderHidden(false);
-      clearSelectedFile();
+      clearFileSelection();
     }
 
     function isPdfFile(file) {
@@ -161,7 +161,7 @@
       }
 
       if (!isPdfFile(file)) {
-        handleInvalidSelection();
+        showInvalidFileMessage();
         return;
       }
 
