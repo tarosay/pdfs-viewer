@@ -5916,6 +5916,20 @@ body.wait::before{
   z-index:2;
 }
 
+/* === Customizations: hide the built-in toolbar when body.hideToolbar is present === */
+body.hideToolbar{
+  --toolbar-height:0px;
+}
+
+body.hideToolbar .toolbar,
+body.hideToolbar #loadingBar{
+  display:none !important;
+}
+
+body.hideToolbar #viewerContainer{
+  inset:0 0 0 !important;
+}
+
 #toolbarSidebar{
   width:100%;
   height:var(--toolbar-height);
