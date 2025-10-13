@@ -21,6 +21,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+      position: relative;
     }
 
     header h1 {
@@ -43,6 +44,22 @@
     #status {
       font-size: 0.95rem;
       opacity: 0.9;
+    }
+
+    #headerDropZone {
+      border: 2px dashed rgba(255, 255, 255, 0.4);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.85);
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    #headerDropZone.is-active {
+      border-color: #fff;
+      background-color: rgba(255, 255, 255, 0.15);
+      color: #fff;
     }
 
     .is-hidden {
@@ -70,6 +87,7 @@
       <label for="fileInput">PDFファイルをアップロードして表示:</label>
       <input id="fileInput" type="file" accept="application/pdf">
     </div>
+    <div id="headerDropZone">青いヘッダーの空いている場所にPDFをドラッグ＆ドロップできます。</div>
     <div id="status">サンプルPDFを表示しています。</div>
   </header>
   <main>
@@ -82,13 +100,26 @@
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
     const header = document.querySelector('header');
+    const headerDropZone = document.getElementById('headerDropZone');
 
     let currentObjectUrl = null;
+    let dropZoneDepth = 0;
 
     function setViewerSource(url, description) {
       const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}#toolbar=0`;
       viewerFrame.src = viewerUrl;
       status.textContent = description;
+    }
+
+    function loadPdfFile(file) {
+      if (!file) {
+        return;
+      }
+
+      resetObjectUrl();
+      currentObjectUrl = URL.createObjectURL(file);
+      setViewerSource(currentObjectUrl, `${file.name} を表示しています。`);
+      header.classList.add('is-hidden');
     }
 
     function resetObjectUrl() {
@@ -98,16 +129,85 @@
       }
     }
 
+    function isPdfFile(file) {
+      return file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'));
+    }
+
+    function isFileDrag(event) {
+      return Boolean(event.dataTransfer && Array.from(event.dataTransfer.types).includes('Files'));
+    }
+
+    function isInUploadControls(event) {
+      return event.composedPath().some(
+        (element) => element instanceof HTMLElement && element.id === 'uploadControls',
+      );
+    }
+
+    function activateDropZone() {
+      headerDropZone.classList.add('is-active');
+    }
+
+    function deactivateDropZone() {
+      dropZoneDepth = 0;
+      headerDropZone.classList.remove('is-active');
+    }
+
     fileInput.addEventListener('change', () => {
       const [file] = fileInput.files;
-      if (!file) {
+      if (!isPdfFile(file)) {
+        status.textContent = 'PDFファイルを選択してください。';
         return;
       }
 
-      resetObjectUrl();
-      currentObjectUrl = URL.createObjectURL(file);
-      setViewerSource(currentObjectUrl, `${file.name} を表示しています。`);
-      header.classList.add('is-hidden');
+      loadPdfFile(file);
+    });
+
+    header.addEventListener('dragenter', (event) => {
+      if (!isFileDrag(event) || isInUploadControls(event)) {
+        return;
+      }
+
+      dropZoneDepth += 1;
+      event.preventDefault();
+      activateDropZone();
+    });
+
+    header.addEventListener('dragover', (event) => {
+      if (!isFileDrag(event) || isInUploadControls(event)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+      activateDropZone();
+    });
+
+    header.addEventListener('dragleave', (event) => {
+      if (!isFileDrag(event) || isInUploadControls(event)) {
+        return;
+      }
+
+      dropZoneDepth = Math.max(dropZoneDepth - 1, 0);
+      if (dropZoneDepth === 0) {
+        deactivateDropZone();
+      }
+    });
+
+    header.addEventListener('drop', (event) => {
+      if (isInUploadControls(event) || !event.dataTransfer) {
+        return;
+      }
+
+      event.preventDefault();
+      deactivateDropZone();
+
+      const pdfFile = Array.from(event.dataTransfer.files).find(isPdfFile);
+      if (!pdfFile) {
+        status.textContent = 'PDFファイルをドロップしてください。';
+        return;
+      }
+
+      loadPdfFile(pdfFile);
     });
 
     window.addEventListener('beforeunload', resetObjectUrl);
