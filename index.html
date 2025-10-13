@@ -81,7 +81,7 @@
     let currentObjectUrl = null;
 
     function setViewerSource(url, description) {
-      const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}`;
+      const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}#toolbar=0`;
       viewerFrame.src = viewerUrl;
       status.textContent = description;
     }
