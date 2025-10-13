@@ -18,7 +18,7 @@ You can still open a PDF directly with the viewer by linking to `https://tarosay
 
 ## 使い方
 
-1. ルートURL（`https://tarosay.github.io/pdfs-viewer/`）にアクセスします。
+1. ルートURL（`[https://tarosay.github.io/pdfs-viewer/](https://tarosay.github.io/pdfs-viewer/)`）にアクセスします。
 2. サンプルPDFが自動的に表示されます。
 3. 自分のPDFを閲覧したい場合は、表示されている **PDFファイルをアップロードして表示** コントロールからファイルを選択します。アップロードすると直ちにそのファイルが表示されます。
 
