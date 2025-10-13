@@ -78,23 +78,23 @@
 
   <script>
     const DEFAULT_PDF = './AIでテーマソング.pdf';
-    const PDF_VIEWER_BASE = './web/viewer.html';
+    const VIEWER_BASE = './web/viewer.html';
 
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
     const header = document.querySelector('header');
 
-    const STATUS_MESSAGES = {
+    const STATUS_MESSAGES = Object.freeze({
       default: 'サンプルPDFを表示しています。',
-      invalidFile: 'PDFファイルを選択してください。',
+      invalid: 'PDFファイルを選択してください。',
       reloadHint: '別のPDFを表示するにはページを再読み込みしてください。'
-    };
+    });
 
     let currentObjectUrl = null;
 
     function buildViewerUrl(fileUrl) {
-      return `${PDF_VIEWER_BASE}?file=${encodeURIComponent(fileUrl)}`;
+      return `${VIEWER_BASE}?file=${encodeURIComponent(fileUrl)}`;
     }
 
     function setViewerSource(fileUrl) {
@@ -105,15 +105,15 @@
       status.textContent = message;
     }
 
-    function toggleHeader(hidden) {
-      header.classList.toggle('is-hidden', hidden);
+    function toggleHeader(isHidden) {
+      header.classList.toggle('is-hidden', isHidden);
     }
 
-    function clearFileInput() {
+    function clearFileSelection() {
       fileInput.value = '';
     }
 
-    function releaseCurrentObjectUrl() {
+    function releaseObjectUrl() {
       if (currentObjectUrl) {
         URL.revokeObjectURL(currentObjectUrl);
         currentObjectUrl = null;
@@ -121,25 +121,25 @@
     }
 
     function showDefaultPdf() {
-      releaseCurrentObjectUrl();
-      clearFileInput();
+      releaseObjectUrl();
+      clearFileSelection();
       setViewerSource(DEFAULT_PDF);
       setStatus();
       toggleHeader(false);
     }
 
     function displayUploadedPdf(file) {
-      releaseCurrentObjectUrl();
+      releaseObjectUrl();
       currentObjectUrl = URL.createObjectURL(file);
       setViewerSource(currentObjectUrl);
       setStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
       toggleHeader(true);
     }
 
-    function handleInvalidFileSelection() {
-      setStatus(STATUS_MESSAGES.invalidFile);
+    function handleInvalidSelection() {
+      setStatus(STATUS_MESSAGES.invalid);
       toggleHeader(false);
-      clearFileInput();
+      clearFileSelection();
     }
 
     function isPdfFile(file) {
@@ -161,7 +161,7 @@
       }
 
       if (!isPdfFile(file)) {
-        handleInvalidFileSelection();
+        handleInvalidSelection();
         return;
       }
 
@@ -169,8 +169,8 @@
     }
 
     fileInput.addEventListener('change', handleFileSelection);
-    window.addEventListener('beforeunload', releaseCurrentObjectUrl);
-    window.addEventListener('pagehide', releaseCurrentObjectUrl);
+    window.addEventListener('beforeunload', releaseObjectUrl);
+    window.addEventListener('pagehide', releaseObjectUrl);
 
     showDefaultPdf();
   </script>
