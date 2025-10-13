@@ -82,10 +82,12 @@
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
     const header = document.querySelector('header');
+    const DEFAULT_STATUS = 'サンプルPDFを表示しています。';
+    const RELOAD_HINT = '別のPDFを表示するにはページを再読み込みしてください。';
 
     let currentObjectUrl = null;
 
-    function setViewerSource(url, description) {
+    function setViewerSource(url, description = DEFAULT_STATUS) {
       const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}`;
       viewerFrame.src = viewerUrl;
       status.textContent = description;
@@ -124,13 +126,16 @@
 
       resetObjectUrl();
       currentObjectUrl = URL.createObjectURL(file);
-      setViewerSource(currentObjectUrl, `${file.name} を表示しています。`);
+      setViewerSource(
+        currentObjectUrl,
+        `${file.name} を表示しています。${RELOAD_HINT}`
+      );
       header.classList.add('is-hidden');
     });
 
     window.addEventListener('beforeunload', resetObjectUrl);
 
-    setViewerSource(DEFAULT_PDF, 'サンプルPDFを表示しています。');
+    setViewerSource(DEFAULT_PDF);
   </script>
 </body>
 </html>
