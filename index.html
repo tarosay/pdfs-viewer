@@ -101,19 +101,19 @@
       viewerFrame.src = buildViewerUrl(fileUrl);
     }
 
-    function updateStatus(message = STATUS_MESSAGES.default) {
+    function setStatus(message = STATUS_MESSAGES.default) {
       status.textContent = message;
     }
 
-    function setHeaderVisibility(isHidden) {
-      header.classList.toggle('is-hidden', isHidden);
+    function toggleHeader(hidden) {
+      header.classList.toggle('is-hidden', hidden);
     }
 
     function clearFileInput() {
       fileInput.value = '';
     }
 
-    function resetObjectUrl() {
+    function releaseCurrentObjectUrl() {
       if (currentObjectUrl) {
         URL.revokeObjectURL(currentObjectUrl);
         currentObjectUrl = null;
@@ -121,24 +121,24 @@
     }
 
     function showDefaultPdf() {
-      resetObjectUrl();
+      releaseCurrentObjectUrl();
       clearFileInput();
       setViewerSource(DEFAULT_PDF);
-      updateStatus();
-      setHeaderVisibility(false);
+      setStatus();
+      toggleHeader(false);
     }
 
     function displayUploadedPdf(file) {
-      resetObjectUrl();
+      releaseCurrentObjectUrl();
       currentObjectUrl = URL.createObjectURL(file);
       setViewerSource(currentObjectUrl);
-      updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
-      setHeaderVisibility(true);
+      setStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
+      toggleHeader(true);
     }
 
-    function handleInvalidFile() {
-      updateStatus(STATUS_MESSAGES.invalidFile);
-      setHeaderVisibility(false);
+    function handleInvalidFileSelection() {
+      setStatus(STATUS_MESSAGES.invalidFile);
+      toggleHeader(false);
       clearFileInput();
     }
 
@@ -161,7 +161,7 @@
       }
 
       if (!isPdfFile(file)) {
-        handleInvalidFile();
+        handleInvalidFileSelection();
         return;
       }
 
@@ -169,8 +169,8 @@
     }
 
     fileInput.addEventListener('change', handleFileSelection);
-    window.addEventListener('beforeunload', resetObjectUrl);
-    window.addEventListener('pagehide', resetObjectUrl);
+    window.addEventListener('beforeunload', releaseCurrentObjectUrl);
+    window.addEventListener('pagehide', releaseCurrentObjectUrl);
 
     showDefaultPdf();
   </script>
