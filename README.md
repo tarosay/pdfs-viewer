@@ -1,30 +1,28 @@
 # PDF Viewer
 
-This is a web-based PDF viewer. It can be used to display PDF files in a browser.
+This is a web-based PDF viewer. It now provides a simple landing page that loads a sample PDF and lets you upload your own files directly from the browser.
 
 ## Usage
 
-To view a PDF file, provide the file path in the `file` query parameter.
+1. Access the root URL: `https://tarosay.github.io/pdfs-viewer/`.
+2. A sample PDF is displayed automatically.
+3. To view your own file, use the **PDFファイルをアップロードして表示** upload control and choose a PDF from your device. The viewer switches to the uploaded file immediately.
 
-Example:
-`https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=YOUR_FILE.pdf`
-
-If you access the root URL (`https://tarosay.github.io/pdfs-viewer/`), you will be redirected to a default PDF file.
+You can still open a PDF directly with the viewer by linking to `https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=YOUR_FILE.pdf` if you prefer query-parameter based access.
 
 ---
 
 # PDFビューア
 
-これはウェブベースのPDFビューアです。ブラウザでPDFファイルを表示するために使用できます。
+これはウェブベースのPDFビューアです。トップページでサンプルPDFを読み込み、ブラウザから直接ファイルをアップロードして表示できるようになりました。
 
 ## 使い方
 
-PDFファイルを表示するには、`file`クエリパラメータでファイルパスを指定します。
+1. ルートURL（`https://tarosay.github.io/pdfs-viewer/`）にアクセスします。
+2. サンプルPDFが自動的に表示されます。
+3. 自分のPDFを閲覧したい場合は、表示されている **PDFファイルをアップロードして表示** コントロールからファイルを選択します。アップロードすると直ちにそのファイルが表示されます。
 
-例:
-`https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=あなたのファイル.pdf`
-
-ルートURL（`https://tarosay.github.io/pdfs-viewer/`）にアクセスすると、デフォルトのPDFファイルにリダイレクトされます。
+クエリパラメータを使用して直接PDFを開きたい場合は、`https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=あなたのファイル.pdf` の形式のURLも引き続き利用できます。
 
 ### AIでテーマソング
 
