@@ -101,9 +101,18 @@
     }
 
     function showDefaultPdf() {
+      resetObjectUrl();
       setViewerSource(DEFAULT_PDF);
       updateStatus(STATUS_MESSAGES.default);
       header.classList.remove('is-hidden');
+    }
+
+    function displayUploadedPdf(file) {
+      resetObjectUrl();
+      currentObjectUrl = URL.createObjectURL(file);
+      setViewerSource(currentObjectUrl);
+      updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
+      header.classList.add('is-hidden');
     }
 
     function resetObjectUrl() {
@@ -138,11 +147,7 @@
         return;
       }
 
-      resetObjectUrl();
-      currentObjectUrl = URL.createObjectURL(file);
-      setViewerSource(currentObjectUrl);
-      updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
-      header.classList.add('is-hidden');
+      displayUploadedPdf(file);
     });
 
     window.addEventListener('beforeunload', resetObjectUrl);
