@@ -82,15 +82,28 @@
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
     const header = document.querySelector('header');
-    const DEFAULT_STATUS = 'サンプルPDFを表示しています。';
-    const RELOAD_HINT = '別のPDFを表示するにはページを再読み込みしてください。';
+
+    const STATUS_MESSAGES = {
+      default: 'サンプルPDFを表示しています。',
+      invalidFile: 'PDFファイルを選択してください。',
+      reloadHint: '別のPDFを表示するにはページを再読み込みしてください。'
+    };
 
     let currentObjectUrl = null;
 
-    function setViewerSource(url, description = DEFAULT_STATUS) {
+    function setViewerSource(url) {
       const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}`;
       viewerFrame.src = viewerUrl;
-      status.textContent = description;
+    }
+
+    function updateStatus(text) {
+      status.textContent = text;
+    }
+
+    function showDefaultPdf() {
+      setViewerSource(DEFAULT_PDF);
+      updateStatus(STATUS_MESSAGES.default);
+      header.classList.remove('is-hidden');
     }
 
     function resetObjectUrl() {
@@ -119,23 +132,22 @@
       }
 
       if (!isPdfFile(file)) {
-        status.textContent = 'PDFファイルを選択してください。';
+        updateStatus(STATUS_MESSAGES.invalidFile);
+        header.classList.remove('is-hidden');
         fileInput.value = '';
         return;
       }
 
       resetObjectUrl();
       currentObjectUrl = URL.createObjectURL(file);
-      setViewerSource(
-        currentObjectUrl,
-        `${file.name} を表示しています。${RELOAD_HINT}`
-      );
+      setViewerSource(currentObjectUrl);
+      updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
       header.classList.add('is-hidden');
     });
 
     window.addEventListener('beforeunload', resetObjectUrl);
 
-    setViewerSource(DEFAULT_PDF);
+    showDefaultPdf();
   </script>
 </body>
 </html>
