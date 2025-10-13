@@ -78,7 +78,7 @@
 
   <script>
     const DEFAULT_PDF = './AIでテーマソング.pdf';
-    const VIEWER_BASE = './web/viewer.html';
+    const PDF_VIEWER_PATH = './web/viewer.html';
 
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
@@ -94,26 +94,26 @@
     let currentObjectUrl = null;
 
     function buildViewerUrl(fileUrl) {
-      return `${VIEWER_BASE}?file=${encodeURIComponent(fileUrl)}`;
+      return `${PDF_VIEWER_PATH}?file=${encodeURIComponent(fileUrl)}`;
     }
 
-    function setViewerSource(fileUrl) {
+    function updateViewerSource(fileUrl) {
       viewerFrame.src = buildViewerUrl(fileUrl);
     }
 
-    function setStatus(message = STATUS_MESSAGES.default) {
+    function updateStatus(message = STATUS_MESSAGES.default) {
       status.textContent = message;
     }
 
-    function toggleHeader(isHidden) {
+    function setHeaderHidden(isHidden) {
       header.classList.toggle('is-hidden', isHidden);
     }
 
-    function clearFileSelection() {
+    function clearSelectedFile() {
       fileInput.value = '';
     }
 
-    function releaseObjectUrl() {
+    function revokeCurrentObjectUrl() {
       if (currentObjectUrl) {
         URL.revokeObjectURL(currentObjectUrl);
         currentObjectUrl = null;
@@ -121,25 +121,25 @@
     }
 
     function showDefaultPdf() {
-      releaseObjectUrl();
-      clearFileSelection();
-      setViewerSource(DEFAULT_PDF);
-      setStatus();
-      toggleHeader(false);
+      revokeCurrentObjectUrl();
+      clearSelectedFile();
+      updateViewerSource(DEFAULT_PDF);
+      updateStatus();
+      setHeaderHidden(false);
     }
 
     function displayUploadedPdf(file) {
-      releaseObjectUrl();
+      revokeCurrentObjectUrl();
       currentObjectUrl = URL.createObjectURL(file);
-      setViewerSource(currentObjectUrl);
-      setStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
-      toggleHeader(true);
+      updateViewerSource(currentObjectUrl);
+      updateStatus(`${file.name} を表示しています。${STATUS_MESSAGES.reloadHint}`);
+      setHeaderHidden(true);
     }
 
     function handleInvalidSelection() {
-      setStatus(STATUS_MESSAGES.invalid);
-      toggleHeader(false);
-      clearFileSelection();
+      updateStatus(STATUS_MESSAGES.invalid);
+      setHeaderHidden(false);
+      clearSelectedFile();
     }
 
     function isPdfFile(file) {
@@ -154,7 +154,7 @@
       return file.name?.toLowerCase().endsWith('.pdf');
     }
 
-    function handleFileSelection() {
+    function handleFileChange() {
       const [file] = fileInput.files;
       if (!file) {
         return;
@@ -168,9 +168,9 @@
       displayUploadedPdf(file);
     }
 
-    fileInput.addEventListener('change', handleFileSelection);
-    window.addEventListener('beforeunload', releaseObjectUrl);
-    window.addEventListener('pagehide', releaseObjectUrl);
+    fileInput.addEventListener('change', handleFileChange);
+    window.addEventListener('beforeunload', revokeCurrentObjectUrl);
+    window.addEventListener('pagehide', revokeCurrentObjectUrl);
 
     showDefaultPdf();
   </script>
