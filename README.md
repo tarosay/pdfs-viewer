@@ -40,5 +40,5 @@ https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=ラズパイとiPhone
 
 ## License
 
-This project is licensed under the **MIT License**.
+This project is licensed under the [**MIT License**](LICENSE).
 
