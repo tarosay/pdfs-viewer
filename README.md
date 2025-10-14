@@ -2,6 +2,8 @@
 
 This is a web-based PDF viewer. It now provides a simple landing page that loads a sample PDF and lets you upload your own files directly from the browser.
 
+**New Feature:** Even when the PDF is displayed in full-screen mode, you can still click on embedded links and open their linked destinations. This ensures smooth navigation and interaction with linked content directly inside the viewer.
+
 ## Usage
 
 1. Access the root URL: [https://tarosay.github.io/pdfs-viewer/](https://tarosay.github.io/pdfs-viewer/).
@@ -15,6 +17,8 @@ You can still open a PDF directly with the viewer by linking to `https://tarosay
 # PDFビューア
 
 これはウェブベースのPDFビューアです。トップページでサンプルPDFを読み込み、ブラウザから直接ファイルをアップロードして表示できるようになりました。
+
+**新機能:** PDFを全画面表示にしても、埋め込まれたリンクをクリックしてリンク先を開くことができます。これにより、PDF内のリンクコンテンツにスムーズにアクセスできます。
 
 ## 使い方
 
@@ -31,3 +35,10 @@ https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=AIでテーマソン�
 ### ラズパイとiPhoneのhttps接続
 
 https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=ラズパイとiPhoneのhttps接続.pdf
+
+---
+
+## License
+
+This project is licensed under the **MIT License**.
+
