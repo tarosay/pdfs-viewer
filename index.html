@@ -177,8 +177,11 @@
     }
 
     function setViewerSource(url, description) {
-      const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}#toolbar=0`;
-      viewerFrame.src = viewerUrl;
+      const viewerUrl = new URL('./web/viewer.html', window.location.href);
+      viewerUrl.searchParams.set('file', url);
+      viewerUrl.searchParams.set('hideMikankame', '1');
+      viewerUrl.hash = 'toolbar=0';
+      viewerFrame.src = viewerUrl.toString();
       status.textContent = description;
       playMascotAnimation();
     }

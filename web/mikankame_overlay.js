@@ -4,8 +4,18 @@ const MASCOT_FINAL_TRANSFORM = "translateX(calc(100vw - 100% - 32px))";
 let hasCompletedMascotAnimation = false;
 const MIKANKAME_HIDE_STORAGE_KEY = "mikankameHidden";
 const mascotElement = document.getElementById("mikankameOverlay");
+const shouldDisableMascot = (() => {
+  try {
+    return new URL(window.location.href).searchParams.get("hideMikankame") === "1";
+  } catch (error) {
+    console.warn("Failed to inspect URL parameters for mikankame overlay.", error);
+    return false;
+  }
+})();
 
-if (mascotElement) {
+if (shouldDisableMascot && mascotElement) {
+  mascotElement.remove();
+} else if (mascotElement) {
   function shouldHideFromSetting() {
     try {
       return localStorage.getItem(MIKANKAME_HIDE_STORAGE_KEY) === "true";

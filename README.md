@@ -42,3 +42,10 @@ https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=ラズパイとiPhone
 
 This project is licensed under the [**MIT License**](LICENSE).
 
+---
+
+## 最近の変更まとめ（日本語）
+
+- ビューワーを埋め込んで表示する際にホストページだけがマスコットを表示するよう、URLに `hideMikankame` フラグを追加しました。
+- `hideMikankame` フラグが付いている場合はオーバーレイスクリプトの初期化をスキップし、既存のマスコット要素を削除して亀が二重に表示されないようにしました。
+
