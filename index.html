@@ -79,33 +79,6 @@
       flex: 1;
       min-height: 0;
     }
-    @keyframes mascotSlideAcross {
-      from {
-        transform: translateX(0);
-      }
-
-      to {
-        transform: translateX(calc(100vw - 100% - 32px));
-      }
-    }
-
-    #mascot {
-      position: fixed;
-      left: 16px;
-      bottom: 16px;
-      width: min(140px, 25vw);
-      max-width: 40vw;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateX(0);
-      transition: opacity 0.2s ease;
-      z-index: 10;
-    }
-
-    #mascot.is-animating {
-      animation: mascotSlideAcross var(--mascot-duration, 6s) ease-in-out forwards;
-      opacity: 1;
-    }
   </style>
 </head>
 <body>
@@ -121,19 +94,15 @@
   <main>
     <iframe id="viewerFrame" title="PDF viewer"></iframe>
   </main>
-  <img id="mascot" src="./mikankame.png" alt="みかんとカメのイラスト">
 
   <script>
     const DEFAULT_PDF = './pdffileviewer.pdf';
-    const MASCOT_ANIMATION_DURATION_MS = 8000;
     const MIKANKAME_HIDE_STORAGE_KEY = 'mikankameHidden';
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
     const header = document.querySelector('header');
     const headerDropZone = document.getElementById('headerDropZone');
-    const mascot = document.getElementById('mascot');
-
     let currentObjectUrl = null;
     let dropZoneDepth = 0;
 
@@ -163,16 +132,6 @@
     }
 
     function updateMascotVisibility() {
-      if (!mascot) {
-        return;
-      }
-
-      const shouldHide = shouldHideMascot();
-      mascot.classList.toggle('is-hidden', shouldHide);
-      if (shouldHide) {
-        mascot.classList.remove('is-animating');
-      }
-
       notifyViewerAboutMascotVisibility();
     }
 
@@ -184,16 +143,10 @@
     }
 
     function playMascotAnimation() {
-      if (!mascot || shouldHideMascot()) {
+      if (shouldHideMascot()) {
+        notifyViewerAboutMascotVisibility();
         return;
       }
-
-      mascot.style.setProperty('--mascot-duration', `${MASCOT_ANIMATION_DURATION_MS}ms`);
-      mascot.style.transform = 'translateX(0)';
-      mascot.classList.remove('is-animating');
-      // Force reflow so that removing the class allows the animation to restart.
-      void mascot.offsetWidth;
-      mascot.classList.add('is-animating');
 
       requestViewerMascotAnimation();
     }
@@ -300,13 +253,14 @@
     window.addEventListener('beforeunload', resetObjectUrl);
 
     document.addEventListener('fullscreenchange', () => {
-      if (document.fullscreenElement === viewerFrame && !shouldHideMascot()) {
-        requestViewerMascotAnimation();
+      if (document.fullscreenElement === viewerFrame) {
+        playMascotAnimation();
       }
     });
 
     viewerFrame.addEventListener('load', () => {
       notifyViewerAboutMascotVisibility();
+      playMascotAnimation();
     });
 
     updateMascotVisibility();
