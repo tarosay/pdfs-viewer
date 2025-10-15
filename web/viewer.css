@@ -7295,7 +7295,7 @@ dialog :link{
 }
 
 #mikankameOverlay.pdfs-mikankame-animating {
-  animation: pdfsMascotSlideAcross var(--mascot-duration, 6s) ease-in-out forwards;
+  animation: pdfsMascotSlideAcross var(--mascot-duration, 6s) linear forwards;
   opacity: 1;
 }
 
