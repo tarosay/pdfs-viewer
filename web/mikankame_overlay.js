@@ -43,11 +43,16 @@ if (mascotElement) {
         "--mascot-duration",
         `${DEFAULT_MASCOT_ANIMATION_DURATION_MS}ms`,
       );
+      mascotElement.style.setProperty(
+        "animation-duration",
+        `${DEFAULT_MASCOT_ANIMATION_DURATION_MS}ms`,
+      );
       return;
     }
 
     mascotAnimationDurationMs = durationMs;
     mascotElement.style.setProperty("--mascot-duration", `${durationMs}ms`);
+    mascotElement.style.setProperty("animation-duration", `${durationMs}ms`);
   }
 
   function getStoredMascotDurationMinutes() {
