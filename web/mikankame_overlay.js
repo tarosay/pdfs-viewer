@@ -1,4 +1,6 @@
 const MASCOT_ANIMATION_DURATION_MS = 8000;
+const MASCOT_FINAL_TRANSFORM = "translateX(calc(100vw - 100% - 32px))";
+let hasCompletedMascotAnimation = false;
 const MIKANKAME_HIDE_STORAGE_KEY = "mikankameHidden";
 const mascotElement = document.getElementById("mikankameOverlay");
 
@@ -49,6 +51,9 @@ if (mascotElement) {
     mascotElement.classList.toggle("pdfs-mikankame-visible", shouldShow);
 
     if (!shouldShow) {
+      if (hasCompletedMascotAnimation) {
+        mascotElement.style.transform = MASCOT_FINAL_TRANSFORM;
+      }
       mascotElement.classList.remove("pdfs-mikankame-animating");
     }
   }
@@ -58,6 +63,8 @@ if (mascotElement) {
       return;
     }
 
+    hasCompletedMascotAnimation = false;
+    mascotElement.style.removeProperty("transform");
     mascotElement.style.setProperty(
       "--mascot-duration",
       `${MASCOT_ANIMATION_DURATION_MS}ms`,
@@ -67,6 +74,16 @@ if (mascotElement) {
     mascotElement.classList.remove("pdfs-mikankame-animating");
     void mascotElement.offsetWidth;
     mascotElement.classList.add("pdfs-mikankame-animating");
+  }
+
+  function handleAnimationEnd(event) {
+    if (event.animationName !== "pdfsMascotSlideAcross") {
+      return;
+    }
+
+    hasCompletedMascotAnimation = true;
+    mascotElement.classList.remove("pdfs-mikankame-animating");
+    mascotElement.style.transform = MASCOT_FINAL_TRANSFORM;
   }
 
   function handleMessage(event) {
@@ -96,6 +113,7 @@ if (mascotElement) {
 
   window.addEventListener("message", handleMessage);
   window.addEventListener("storage", updateMascotVisibility);
+  mascotElement.addEventListener("animationend", handleAnimationEnd);
   fullScreenEvents.forEach((eventName) => {
     document.addEventListener(eventName, updateMascotVisibility);
     document.addEventListener(eventName, () => {
