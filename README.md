@@ -11,7 +11,7 @@ This is a web-based PDF viewer. It now provides a simple landing page that loads
 3. To view your own file, use the **Upload and display a PDF file** control and choose a PDF from your device. The viewer switches to the uploaded file immediately.
 
 You can still open a PDF directly with the viewer by linking to `https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=YOUR_FILE.pdf` if you prefer query-parameter based access.
-When doing so, you may also pass `time` (in seconds) and `animation=on` to immediately start the Mikankame mascot animation with a custom duration, e.g. `...&time=5&animation=on`.
+When doing so, you may also pass `time` (in minutes) and `animation=on` to immediately start the Mikankame mascot animation with a custom duration, e.g. `...&time=5&animation=on`. Passing `animation=off` hides the mascot entirely for that load.
 
 ---
 
@@ -28,7 +28,7 @@ When doing so, you may also pass `time` (in seconds) and `animation=on` to immed
 3. 自分のPDFを閲覧したい場合は、表示されている **PDFファイルをアップロードして表示** コントロールからファイルを選択します。アップロードすると直ちにそのファイルが表示されます。
 
 クエリパラメータを使用して直接PDFを開きたい場合は、`https://tarosay.github.io/pdfs-viewer/web/viewer.html?file=あなたのファイル.pdf` の形式のURLも引き続き利用できます。
-その際は `time`（秒数）と `animation=on` を付けることで、ミカンカメの移動時間を変更した状態で読み込み時にアニメーションを開始できます（例：`...&time=5&animation=on`）。
+その際は `time`（分）と `animation=on` を付けることで、ミカンカメの移動時間を変更した状態で読み込み時にアニメーションを開始できます（例：`...&time=5&animation=on`）。`animation=off` を指定すると、その読み込みではミカンカメを非表示にできます。
 
 ### AIでテーマソング
 
