@@ -126,6 +126,7 @@
   <script>
     const DEFAULT_PDF = './pdffileviewer.pdf';
     const MASCOT_ANIMATION_DURATION_MS = 8000;
+    const MIKANKAME_HIDE_STORAGE_KEY = 'mikankameHidden';
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
@@ -136,6 +137,45 @@
     let currentObjectUrl = null;
     let dropZoneDepth = 0;
 
+    function postMessageToViewer(data) {
+      try {
+        viewerFrame.contentWindow?.postMessage(data, '*');
+      } catch (error) {
+        console.warn('Failed to communicate with the embedded viewer.', error);
+      }
+    }
+
+    function requestViewerMascotAnimation() {
+      postMessageToViewer({ type: 'play-mikankame-animation' });
+    }
+
+    function notifyViewerAboutMascotVisibility() {
+      postMessageToViewer({ type: 'update-mikankame-visibility' });
+    }
+
+    function shouldHideMascot() {
+      try {
+        return localStorage.getItem(MIKANKAME_HIDE_STORAGE_KEY) === 'true';
+      } catch (error) {
+        console.warn('Failed to access mikankame preference from localStorage.', error);
+        return false;
+      }
+    }
+
+    function updateMascotVisibility() {
+      if (!mascot) {
+        return;
+      }
+
+      const shouldHide = shouldHideMascot();
+      mascot.classList.toggle('is-hidden', shouldHide);
+      if (shouldHide) {
+        mascot.classList.remove('is-animating');
+      }
+
+      notifyViewerAboutMascotVisibility();
+    }
+
     function setViewerSource(url, description) {
       const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}#toolbar=0`;
       viewerFrame.src = viewerUrl;
@@ -144,7 +184,7 @@
     }
 
     function playMascotAnimation() {
-      if (!mascot) {
+      if (!mascot || shouldHideMascot()) {
         return;
       }
 
@@ -153,6 +193,8 @@
       // Force reflow so that removing the class allows the animation to restart.
       void mascot.offsetWidth;
       mascot.classList.add('is-animating');
+
+      requestViewerMascotAnimation();
     }
 
     function loadPdfFile(file) {
@@ -256,6 +298,17 @@
 
     window.addEventListener('beforeunload', resetObjectUrl);
 
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement === viewerFrame && !shouldHideMascot()) {
+        requestViewerMascotAnimation();
+      }
+    });
+
+    viewerFrame.addEventListener('load', () => {
+      notifyViewerAboutMascotVisibility();
+    });
+
+    updateMascotVisibility();
     setViewerSource(DEFAULT_PDF, 'サンプルPDFを表示しています。');
   </script>
 </body>
