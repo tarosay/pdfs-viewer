@@ -1,6 +1,7 @@
 const MASCOT_ANIMATION_DURATION_MS = 8000;
 const MASCOT_FINAL_TRANSFORM = "translateX(calc(100vw - 100% - 32px))";
 let hasCompletedMascotAnimation = false;
+let hasResetMascotPositionSinceLoad = false;
 const MIKANKAME_HIDE_STORAGE_KEY = "mikankameHidden";
 const mascotElement = document.getElementById("mikankameOverlay");
 
@@ -72,7 +73,10 @@ if (mascotElement) {
     }
 
     hasCompletedMascotAnimation = false;
-    mascotElement.style.removeProperty("transform");
+    if (!hasResetMascotPositionSinceLoad) {
+      mascotElement.style.removeProperty("transform");
+      hasResetMascotPositionSinceLoad = true;
+    }
     mascotElement.style.setProperty(
       "--mascot-duration",
       `${MASCOT_ANIMATION_DURATION_MS}ms`,
