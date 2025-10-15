@@ -58,6 +58,10 @@ if (mascotElement) {
     }
   }
 
+  function isMascotAnimating() {
+    return mascotElement.classList.contains("pdfs-mikankame-animating");
+  }
+
   function playMascotAnimation() {
     if (!shouldDisplayMascot()) {
       return;
@@ -104,6 +108,18 @@ if (mascotElement) {
     }
   }
 
+  function handleFullscreenChange() {
+    updateMascotVisibility();
+
+    if (
+      isDocumentFullscreen() &&
+      !hasCompletedMascotAnimation &&
+      !isMascotAnimating()
+    ) {
+      playMascotAnimation();
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     updateMascotVisibility();
     if (!isEmbeddedViewer) {
@@ -115,11 +131,6 @@ if (mascotElement) {
   window.addEventListener("storage", updateMascotVisibility);
   mascotElement.addEventListener("animationend", handleAnimationEnd);
   fullScreenEvents.forEach((eventName) => {
-    document.addEventListener(eventName, updateMascotVisibility);
-    document.addEventListener(eventName, () => {
-      if (isDocumentFullscreen()) {
-        playMascotAnimation();
-      }
-    });
+    document.addEventListener(eventName, handleFullscreenChange);
   });
 }
