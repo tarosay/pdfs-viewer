@@ -7277,6 +7277,42 @@ dialog :link{
   }
 }
 
+#mikankameOverlay {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  width: min(140px, 25vw);
+  max-width: 40vw;
+  pointer-events: none;
+  transform: translateX(0);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 2147483647;
+}
+
+#mikankameOverlay.pdfs-mikankame-visible {
+  opacity: 1;
+}
+
+#mikankameOverlay.pdfs-mikankame-animating {
+  animation: pdfsMascotSlideAcross var(--mascot-duration, 6s) ease-in-out forwards;
+  opacity: 1;
+}
+
+#mikankameOverlay.pdfs-mikankame-hidden {
+  display: none !important;
+}
+
+@keyframes pdfsMascotSlideAcross {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(100vw - 100% - 32px));
+  }
+}
+
 @media all and (max-width: 690px){
   .hiddenSmallView,
   .hiddenSmallView *{
