@@ -7281,8 +7281,8 @@ dialog :link{
   position: fixed;
   left: 16px;
   bottom: 16px;
-  width: min(140px, 25vw);
-  max-width: 40vw;
+  width: min(70px, 12.5vw);
+  max-width: 20vw;
   pointer-events: none;
   transform: translateX(0);
   opacity: 0;
