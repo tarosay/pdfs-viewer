@@ -117,6 +117,12 @@
       <label for="fileInput">PDFファイルをアップロードして表示:</label>
       <input id="fileInput" type="file" accept="application/pdf">
     </div>
+    <div id="mascotVisibilityControls">
+      <label>
+        <input id="mascotVisibilityCheckbox" type="checkbox" checked>
+        ミカンカメを表示する
+      </label>
+    </div>
     <div id="mascotControls">
       <label for="mascotDurationInput">ミカンカメの移動時間 (分):</label>
       <input
@@ -140,12 +146,13 @@
     const DEFAULT_PDF = './pdffileviewer.pdf';
     const MIKANKAME_HIDE_STORAGE_KEY = 'mikankameHidden';
     const MIKANKAME_DURATION_STORAGE_KEY = 'mikankameDurationMinutes';
-    const DEFAULT_MASCOT_DURATION_MINUTES = 8 / 60;
+    const DEFAULT_MASCOT_DURATION_MINUTES = 5;
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
     const header = document.querySelector('header');
     const headerDropZone = document.getElementById('headerDropZone');
+    const mascotVisibilityCheckbox = document.getElementById('mascotVisibilityCheckbox');
     const mascotDurationInput = document.getElementById('mascotDurationInput');
     const mascotDurationSummary = document.getElementById('mascotDurationSummary');
     let currentObjectUrl = null;
@@ -182,6 +189,22 @@
         console.warn('Failed to access mikankame preference from localStorage.', error);
         return false;
       }
+    }
+
+    function setShouldHideMascot(shouldHide) {
+      try {
+        localStorage.setItem(MIKANKAME_HIDE_STORAGE_KEY, shouldHide ? 'true' : 'false');
+      } catch (error) {
+        console.warn('Failed to store mikankame preference in localStorage.', error);
+      }
+    }
+
+    function updateMascotVisibilityControl() {
+      if (!mascotVisibilityCheckbox) {
+        return;
+      }
+
+      mascotVisibilityCheckbox.checked = !shouldHideMascot();
     }
 
     function getStoredMascotDurationMinutes() {
@@ -266,7 +289,20 @@
     }
 
     function updateMascotVisibility() {
+      updateMascotVisibilityControl();
       notifyViewerAboutMascotVisibility();
+    }
+
+    function setMascotVisibilityPreference(shouldShow) {
+      setShouldHideMascot(!shouldShow);
+      updateMascotVisibility();
+
+      if (shouldShow) {
+        playMascotAnimation();
+        status.textContent = 'ミカンカメを表示します。';
+      } else {
+        status.textContent = 'ミカンカメを表示しません。';
+      }
     }
 
     function setViewerSource(url, description) {
@@ -405,6 +441,10 @@
 
     mascotDurationInput?.addEventListener('blur', () => {
       updateMascotDurationInput();
+    });
+
+    mascotVisibilityCheckbox?.addEventListener('change', () => {
+      setMascotVisibilityPreference(mascotVisibilityCheckbox.checked);
     });
 
     updateMascotVisibility();

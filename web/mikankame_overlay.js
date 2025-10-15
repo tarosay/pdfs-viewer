@@ -1,5 +1,5 @@
 const MIKANKAME_DURATION_STORAGE_KEY = "mikankameDurationMinutes";
-const DEFAULT_MASCOT_ANIMATION_DURATION_MS = 8000;
+const DEFAULT_MASCOT_ANIMATION_DURATION_MS = 5 * 60 * 1000;
 const MASCOT_INITIAL_TRANSFORM = "translateX(0)";
 const MASCOT_FINAL_TRANSFORM = "translateX(calc(100vw - 100% - 32px))";
 let hasCompletedMascotAnimation = false;
