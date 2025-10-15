@@ -63,7 +63,11 @@ if (mascotElement) {
   }
 
   function playMascotAnimation() {
-    if (!shouldDisplayMascot()) {
+    if (
+      !shouldDisplayMascot() ||
+      hasCompletedMascotAnimation ||
+      isMascotAnimating()
+    ) {
       return;
     }
 
