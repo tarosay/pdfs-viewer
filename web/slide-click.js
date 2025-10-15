@@ -141,7 +141,14 @@
     if (document.getElementById('slideUI')) return;
     const ui = document.createElement('div');
     ui.id = 'slideUI';
-    Object.assign(ui.style, { position:'fixed', right:'10px', bottom:'10px', zIndex:'2147483647', display:'flex', gap:'8px' });
+    Object.assign(ui.style, {
+      position: 'fixed',
+      right: '10px',
+      bottom: '10px',
+      zIndex: '2147483646',
+      display: 'flex',
+      gap: '8px',
+    });
 
     modeBtn = document.createElement('button');
     fsBtn   = document.createElement('button');
