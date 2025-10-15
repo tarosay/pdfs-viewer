@@ -79,6 +79,33 @@
       flex: 1;
       min-height: 0;
     }
+    @keyframes mascotSlideAcross {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(calc(100vw - 100% - 32px));
+      }
+    }
+
+    #mascot {
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      width: min(140px, 25vw);
+      max-width: 40vw;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(0);
+      transition: opacity 0.2s ease;
+      z-index: 10;
+    }
+
+    #mascot.is-animating {
+      animation: mascotSlideAcross var(--mascot-duration, 6s) ease-in-out forwards;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -94,14 +121,17 @@
   <main>
     <iframe id="viewerFrame" title="PDF viewer"></iframe>
   </main>
+  <img id="mascot" src="./mikankame.png" alt="みかんとカメのイラスト">
 
   <script>
     const DEFAULT_PDF = './pdffileviewer.pdf';
+    const MASCOT_ANIMATION_DURATION_MS = 8000;
     const viewerFrame = document.getElementById('viewerFrame');
     const fileInput = document.getElementById('fileInput');
     const status = document.getElementById('status');
     const header = document.querySelector('header');
     const headerDropZone = document.getElementById('headerDropZone');
+    const mascot = document.getElementById('mascot');
 
     let currentObjectUrl = null;
     let dropZoneDepth = 0;
@@ -110,6 +140,19 @@
       const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}#toolbar=0`;
       viewerFrame.src = viewerUrl;
       status.textContent = description;
+      playMascotAnimation();
+    }
+
+    function playMascotAnimation() {
+      if (!mascot) {
+        return;
+      }
+
+      mascot.style.setProperty('--mascot-duration', `${MASCOT_ANIMATION_DURATION_MS}ms`);
+      mascot.classList.remove('is-animating');
+      // Force reflow so that removing the class allows the animation to restart.
+      void mascot.offsetWidth;
+      mascot.classList.add('is-animating');
     }
 
     function loadPdfFile(file) {
