@@ -2,6 +2,7 @@ const MASCOT_ANIMATION_DURATION_MS = 8000;
 const MASCOT_FINAL_TRANSFORM = "translateX(calc(100vw - 100% - 32px))";
 let hasCompletedMascotAnimation = false;
 let hasResetMascotPositionSinceLoad = false;
+let shouldResumeMascotAnimationAfterHide = false;
 const MIKANKAME_HIDE_STORAGE_KEY = "mikankameHidden";
 const mascotElement = document.getElementById("mikankameOverlay");
 
@@ -54,9 +55,43 @@ if (mascotElement) {
     if (!shouldShow) {
       if (hasCompletedMascotAnimation) {
         mascotElement.style.transform = MASCOT_FINAL_TRANSFORM;
+        mascotElement.classList.remove("pdfs-mikankame-animating");
+        mascotElement.style.removeProperty("animation-play-state");
+        shouldResumeMascotAnimationAfterHide = false;
+        return;
       }
-      mascotElement.classList.remove("pdfs-mikankame-animating");
+
+      if (isMascotAnimating()) {
+        mascotElement.style.animationPlayState = "paused";
+        shouldResumeMascotAnimationAfterHide = true;
+      } else {
+        mascotElement.style.removeProperty("animation-play-state");
+        shouldResumeMascotAnimationAfterHide = false;
+      }
+      return;
     }
+
+    if (
+      shouldResumeMascotAnimationAfterHide &&
+      isMascotAnimating() &&
+      mascotElement.style.animationPlayState === "paused"
+    ) {
+      mascotElement.style.animationPlayState = "running";
+      const raf = window.requestAnimationFrame;
+      if (typeof raf === "function") {
+        raf(() => {
+          if (shouldResumeMascotAnimationAfterHide) {
+            return;
+          }
+          if (mascotElement.style.animationPlayState === "running") {
+            mascotElement.style.removeProperty("animation-play-state");
+          }
+        });
+      } else if (mascotElement.style.animationPlayState === "running") {
+        mascotElement.style.removeProperty("animation-play-state");
+      }
+    }
+    shouldResumeMascotAnimationAfterHide = false;
   }
 
   function isMascotAnimating() {
@@ -96,6 +131,8 @@ if (mascotElement) {
     hasCompletedMascotAnimation = true;
     mascotElement.classList.remove("pdfs-mikankame-animating");
     mascotElement.style.transform = MASCOT_FINAL_TRANSFORM;
+    mascotElement.style.removeProperty("animation-play-state");
+    shouldResumeMascotAnimationAfterHide = false;
   }
 
   function handleMessage(event) {

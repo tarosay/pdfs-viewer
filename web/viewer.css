@@ -7300,7 +7300,7 @@ dialog :link{
 }
 
 #mikankameOverlay.pdfs-mikankame-hidden {
-  display: none !important;
+  visibility: hidden;
 }
 
 @keyframes pdfsMascotSlideAcross {
