@@ -7,6 +7,7 @@ const MIKANKAME_HIDE_STORAGE_KEY = "mikankameHidden";
 const mascotElement = document.getElementById("mikankameOverlay");
 let mascotAnimationDurationMs = DEFAULT_MASCOT_ANIMATION_DURATION_MS;
 let shouldTriggerMascotAnimationFromUrl = false;
+let shouldHideMascotFromUrl = false;
 
 if (mascotElement) {
   function shouldHideFromSetting() {
@@ -22,7 +23,7 @@ if (mascotElement) {
   }
 
   function updateMascotVisibility() {
-    const shouldShow = !shouldHideFromSetting();
+    const shouldShow = !shouldHideFromSetting() && !shouldHideMascotFromUrl;
     mascotElement.classList.toggle("pdfs-mikankame-hidden", !shouldShow);
     mascotElement.classList.toggle("pdfs-mikankame-visible", shouldShow);
 
@@ -94,12 +95,12 @@ if (mascotElement) {
       return;
     }
 
-    const seconds = Number(timeParam);
-    if (!Number.isFinite(seconds) || seconds <= 0) {
+    const minutes = Number(timeParam);
+    if (!Number.isFinite(minutes) || minutes <= 0) {
       return;
     }
 
-    setMascotAnimationDurationMs(seconds * 1000);
+    setMascotAnimationDurationMs(minutes * 60 * 1000);
   }
 
   function updateAnimationPreferenceFromUrl(url) {
@@ -110,8 +111,13 @@ if (mascotElement) {
 
     const normalized = animationParam.trim().toLowerCase();
     const shouldPlay = ["1", "true", "yes", "on", "start"].includes(normalized);
+    const shouldHide = ["0", "false", "no", "off", "stop"].includes(normalized);
     shouldTriggerMascotAnimationFromUrl =
       shouldTriggerMascotAnimationFromUrl || shouldPlay;
+
+    if (shouldHide) {
+      shouldHideMascotFromUrl = true;
+    }
   }
 
   function applyMascotConfigurationFromUrl() {
@@ -200,9 +206,9 @@ if (mascotElement) {
 
   document.addEventListener("DOMContentLoaded", () => {
     mascotElement.style.transform = MASCOT_INITIAL_TRANSFORM;
-    updateMascotVisibility();
     applyStoredMascotDuration();
     applyMascotConfigurationFromUrl();
+    updateMascotVisibility();
 
     if (shouldTriggerMascotAnimationFromUrl && !shouldHideFromSetting()) {
       requestAnimationFrame(() => {
