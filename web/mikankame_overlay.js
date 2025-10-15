@@ -6,6 +6,7 @@ let hasCompletedMascotAnimation = false;
 const MIKANKAME_HIDE_STORAGE_KEY = "mikankameHidden";
 const mascotElement = document.getElementById("mikankameOverlay");
 let mascotAnimationDurationMs = DEFAULT_MASCOT_ANIMATION_DURATION_MS;
+let shouldTriggerMascotAnimationFromUrl = false;
 
 if (mascotElement) {
   function shouldHideFromSetting() {
@@ -87,6 +88,45 @@ if (mascotElement) {
     setMascotAnimationDurationMs(minutes * 60 * 1000);
   }
 
+  function applyMascotDurationFromUrl(url) {
+    const timeParam = url.searchParams.get("time");
+    if (timeParam === null) {
+      return;
+    }
+
+    const seconds = Number(timeParam);
+    if (!Number.isFinite(seconds) || seconds <= 0) {
+      return;
+    }
+
+    setMascotAnimationDurationMs(seconds * 1000);
+  }
+
+  function updateAnimationPreferenceFromUrl(url) {
+    const animationParam = url.searchParams.get("animation");
+    if (!animationParam) {
+      return;
+    }
+
+    const normalized = animationParam.trim().toLowerCase();
+    const shouldPlay = ["1", "true", "yes", "on", "start"].includes(normalized);
+    shouldTriggerMascotAnimationFromUrl =
+      shouldTriggerMascotAnimationFromUrl || shouldPlay;
+  }
+
+  function applyMascotConfigurationFromUrl() {
+    let url;
+    try {
+      url = new URL(window.location.href);
+    } catch (error) {
+      console.warn("Failed to parse the current URL for mascot configuration.", error);
+      return;
+    }
+
+    applyMascotDurationFromUrl(url);
+    updateAnimationPreferenceFromUrl(url);
+  }
+
   function updateMascotDuration(minutes) {
     if (!Number.isFinite(minutes) || minutes <= 0) {
       return;
@@ -162,6 +202,13 @@ if (mascotElement) {
     mascotElement.style.transform = MASCOT_INITIAL_TRANSFORM;
     updateMascotVisibility();
     applyStoredMascotDuration();
+    applyMascotConfigurationFromUrl();
+
+    if (shouldTriggerMascotAnimationFromUrl && !shouldHideFromSetting()) {
+      requestAnimationFrame(() => {
+        playMascotAnimation();
+      });
+    }
   });
 
   window.addEventListener("message", handleMessage);
