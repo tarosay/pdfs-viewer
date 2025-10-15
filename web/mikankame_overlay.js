@@ -1,28 +1,11 @@
 const MASCOT_ANIMATION_DURATION_MS = 8000;
+const MASCOT_INITIAL_TRANSFORM = "translateX(0)";
 const MASCOT_FINAL_TRANSFORM = "translateX(calc(100vw - 100% - 32px))";
 let hasCompletedMascotAnimation = false;
-let hasResetMascotPositionSinceLoad = false;
-let shouldResumeMascotAnimationAfterHide = false;
 const MIKANKAME_HIDE_STORAGE_KEY = "mikankameHidden";
 const mascotElement = document.getElementById("mikankameOverlay");
 
 if (mascotElement) {
-  const isEmbeddedViewer = window.top !== window;
-
-  const fullScreenEvents = [
-    "fullscreenchange",
-    "webkitfullscreenchange",
-    "msfullscreenchange",
-  ];
-
-  function isDocumentFullscreen() {
-    return Boolean(
-      document.fullscreenElement ||
-        document.webkitFullscreenElement ||
-        document.msFullscreenElement
-    );
-  }
-
   function shouldHideFromSetting() {
     try {
       return localStorage.getItem(MIKANKAME_HIDE_STORAGE_KEY) === "true";
@@ -35,63 +18,16 @@ if (mascotElement) {
     }
   }
 
-  function shouldDisplayMascot() {
-    if (shouldHideFromSetting()) {
-      return false;
-    }
-
-    if (!isEmbeddedViewer) {
-      return true;
-    }
-
-    return isDocumentFullscreen();
-  }
-
   function updateMascotVisibility() {
-    const shouldShow = shouldDisplayMascot();
+    const shouldShow = !shouldHideFromSetting();
     mascotElement.classList.toggle("pdfs-mikankame-hidden", !shouldShow);
     mascotElement.classList.toggle("pdfs-mikankame-visible", shouldShow);
 
     if (!shouldShow) {
-      if (hasCompletedMascotAnimation) {
-        mascotElement.style.transform = MASCOT_FINAL_TRANSFORM;
-        mascotElement.classList.remove("pdfs-mikankame-animating");
-        mascotElement.style.removeProperty("animation-play-state");
-        shouldResumeMascotAnimationAfterHide = false;
-        return;
-      }
-
-      if (isMascotAnimating()) {
-        mascotElement.style.animationPlayState = "paused";
-        shouldResumeMascotAnimationAfterHide = true;
-      } else {
-        mascotElement.style.removeProperty("animation-play-state");
-        shouldResumeMascotAnimationAfterHide = false;
-      }
+      mascotElement.classList.remove("pdfs-mikankame-animating");
+      mascotElement.style.removeProperty("animation-play-state");
       return;
     }
-
-    if (
-      shouldResumeMascotAnimationAfterHide &&
-      isMascotAnimating() &&
-      mascotElement.style.animationPlayState === "paused"
-    ) {
-      mascotElement.style.animationPlayState = "running";
-      const raf = window.requestAnimationFrame;
-      if (typeof raf === "function") {
-        raf(() => {
-          if (shouldResumeMascotAnimationAfterHide) {
-            return;
-          }
-          if (mascotElement.style.animationPlayState === "running") {
-            mascotElement.style.removeProperty("animation-play-state");
-          }
-        });
-      } else if (mascotElement.style.animationPlayState === "running") {
-        mascotElement.style.removeProperty("animation-play-state");
-      }
-    }
-    shouldResumeMascotAnimationAfterHide = false;
   }
 
   function isMascotAnimating() {
@@ -99,19 +35,12 @@ if (mascotElement) {
   }
 
   function playMascotAnimation() {
-    if (
-      !shouldDisplayMascot() ||
-      hasCompletedMascotAnimation ||
-      isMascotAnimating()
-    ) {
+    if (shouldHideFromSetting() || hasCompletedMascotAnimation || isMascotAnimating()) {
       return;
     }
 
     hasCompletedMascotAnimation = false;
-    if (!hasResetMascotPositionSinceLoad) {
-      mascotElement.style.removeProperty("transform");
-      hasResetMascotPositionSinceLoad = true;
-    }
+    mascotElement.style.transform = MASCOT_INITIAL_TRANSFORM;
     mascotElement.style.setProperty(
       "--mascot-duration",
       `${MASCOT_ANIMATION_DURATION_MS}ms`,
@@ -132,7 +61,6 @@ if (mascotElement) {
     mascotElement.classList.remove("pdfs-mikankame-animating");
     mascotElement.style.transform = MASCOT_FINAL_TRANSFORM;
     mascotElement.style.removeProperty("animation-play-state");
-    shouldResumeMascotAnimationAfterHide = false;
   }
 
   function handleMessage(event) {
@@ -153,29 +81,12 @@ if (mascotElement) {
     }
   }
 
-  function handleFullscreenChange() {
-    updateMascotVisibility();
-
-    if (
-      isDocumentFullscreen() &&
-      !hasCompletedMascotAnimation &&
-      !isMascotAnimating()
-    ) {
-      playMascotAnimation();
-    }
-  }
-
   document.addEventListener("DOMContentLoaded", () => {
+    mascotElement.style.transform = MASCOT_INITIAL_TRANSFORM;
     updateMascotVisibility();
-    if (!isEmbeddedViewer) {
-      playMascotAnimation();
-    }
   });
 
   window.addEventListener("message", handleMessage);
   window.addEventListener("storage", updateMascotVisibility);
   mascotElement.addEventListener("animationend", handleAnimationEnd);
-  fullScreenEvents.forEach((eventName) => {
-    document.addEventListener(eventName, handleFullscreenChange);
-  });
 }

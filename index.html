@@ -189,6 +189,7 @@
       }
 
       mascot.style.setProperty('--mascot-duration', `${MASCOT_ANIMATION_DURATION_MS}ms`);
+      mascot.style.transform = 'translateX(0)';
       mascot.classList.remove('is-animating');
       // Force reflow so that removing the class allows the animation to restart.
       void mascot.offsetWidth;
