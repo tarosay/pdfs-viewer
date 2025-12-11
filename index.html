@@ -447,6 +447,27 @@
       setMascotVisibilityPreference(mascotVisibilityCheckbox.checked);
     });
 
+    // URLパラメータの読み取り処理
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // 1. 時間設定 (time=5 など)
+    const timeParam = urlParams.get('time');
+    if (timeParam) {
+      const minutes = parseFloat(timeParam);
+      // 正しい数値であれば設定を上書き保存し、画面にも反映
+      if (Number.isFinite(minutes) && minutes > 0) {
+        setMascotDurationMinutes(minutes);
+      }
+    }
+
+    // 2. 表示/非表示設定 (guide=on/off)
+    const guideParam = urlParams.get('guide');
+    if (guideParam === 'on') {
+      setMascotVisibilityPreference(true);
+    } else if (guideParam === 'off') {
+      setMascotVisibilityPreference(false);
+    }
+
     updateMascotVisibility();
     updateMascotDurationInput();
     setViewerSource(DEFAULT_PDF, 'サンプルPDFを表示しています。');
