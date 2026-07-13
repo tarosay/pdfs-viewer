@@ -166,10 +166,6 @@
       }
     }
 
-    function requestViewerMascotAnimation() {
-      postMessageToViewer({ type: 'play-mikankame-animation' });
-    }
-
     function notifyViewerAboutMascotVisibility() {
       postMessageToViewer({ type: 'update-mikankame-visibility' });
     }
@@ -298,7 +294,6 @@
       updateMascotVisibility();
 
       if (shouldShow) {
-        playMascotAnimation();
         status.textContent = 'ミカンカメを表示します。';
       } else {
         status.textContent = 'ミカンカメを表示しません。';
@@ -309,16 +304,6 @@
       const viewerUrl = `./web/viewer.html?file=${encodeURIComponent(url)}#toolbar=0`;
       viewerFrame.src = viewerUrl;
       status.textContent = description;
-      playMascotAnimation();
-    }
-
-    function playMascotAnimation() {
-      if (shouldHideMascot()) {
-        notifyViewerAboutMascotVisibility();
-        return;
-      }
-
-      requestViewerMascotAnimation();
     }
 
     function loadPdfFile(file) {
@@ -422,16 +407,9 @@
 
     window.addEventListener('beforeunload', resetObjectUrl);
 
-    document.addEventListener('fullscreenchange', () => {
-      if (document.fullscreenElement === viewerFrame) {
-        playMascotAnimation();
-      }
-    });
-
     viewerFrame.addEventListener('load', () => {
       notifyViewerAboutMascotVisibility();
       notifyViewerAboutMascotDuration();
-      playMascotAnimation();
     });
 
     mascotDurationInput?.addEventListener('change', () => {

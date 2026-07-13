@@ -157,11 +157,7 @@ if (mascotElement) {
     }
   }
 
-  function playMascotAnimation() {
-    if (shouldHideFromSetting() || hasCompletedMascotAnimation || isMascotAnimating()) {
-      return;
-    }
-
+  function startMascotAnimation() {
     hasCompletedMascotAnimation = false;
     mascotElement.style.transform = MASCOT_INITIAL_TRANSFORM;
     setMascotAnimationDurationMs(mascotAnimationDurationMs);
@@ -170,6 +166,22 @@ if (mascotElement) {
     mascotElement.classList.remove("pdfs-mikankame-animating");
     void mascotElement.offsetWidth;
     mascotElement.classList.add("pdfs-mikankame-animating");
+  }
+
+  function playMascotAnimation() {
+    if (shouldHideFromSetting() || hasCompletedMascotAnimation || isMascotAnimating()) {
+      return;
+    }
+
+    startMascotAnimation();
+  }
+
+  function restartMascotAnimation() {
+    if (shouldHideFromSetting()) {
+      return;
+    }
+
+    startMascotAnimation();
   }
 
   function handleAnimationEnd(event) {
@@ -192,6 +204,9 @@ if (mascotElement) {
     switch (data.type) {
       case "play-mikankame-animation":
         playMascotAnimation();
+        break;
+      case "restart-mikankame-animation":
+        restartMascotAnimation();
         break;
       case "update-mikankame-visibility":
         updateMascotVisibility();
@@ -216,6 +231,8 @@ if (mascotElement) {
       });
     }
   });
+
+  window.restartMikankameAnimation = restartMascotAnimation;
 
   window.addEventListener("message", handleMessage);
   window.addEventListener("storage", (event) => {

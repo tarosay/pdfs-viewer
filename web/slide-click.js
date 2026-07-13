@@ -1,7 +1,7 @@
 // web/slide-click.js — 標準⇄拡張切替（全画面ボタン常時制御版）
 (() => {
   const STATE = { enabled: false };
-  let fsBtn, modeBtn;
+  let fsBtn, modeBtn, restartBtn;
   let hasInitialized = false;
 
   // PDF.js 参照
@@ -142,7 +142,8 @@
 
     modeBtn = document.createElement('button');
     fsBtn = document.createElement('button');
-    [modeBtn, fsBtn].forEach(btn => Object.assign(btn.style, {
+    restartBtn = document.createElement('button');
+    [modeBtn, fsBtn, restartBtn].forEach(btn => Object.assign(btn.style, {
       padding: '6px 10px', border: '1px solid #888', borderRadius: '6px',
       background: '#fff', color: '#111', cursor: 'pointer',
       font: '14px/1.2 sans-serif'
@@ -150,9 +151,12 @@
 
     modeBtn.onclick = (e) => { e.stopPropagation(); (STATE.enabled ? disable : enable)(); };
     fsBtn.onclick = (e) => { e.stopPropagation(); toggleFS(); };
+    restartBtn.textContent = 'スタート';
+    restartBtn.onclick = (e) => { e.stopPropagation(); window.restartMikankameAnimation?.(); };
 
     ui.appendChild(modeBtn);
     ui.appendChild(fsBtn);
+    ui.appendChild(restartBtn);
     document.body.appendChild(ui);
     updateModeBtn(); updateFsBtn();
 
